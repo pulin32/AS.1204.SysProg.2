@@ -17,9 +17,24 @@
 
 #define cameraStep 1
 
-struct data
+typedef void (*robobrain)();
+
+struct fieldData
 {
 	int fieldHeight;
 	int fieldWidth;
 	int rivals;
 };
+
+struct robot
+{
+	CString name;
+	COLORREF color;
+	//robobrain DoStep;
+	HINSTANCE Library;
+	int x;
+	int y;
+	int E;
+	int L;
+};
+

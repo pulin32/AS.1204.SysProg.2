@@ -1,6 +1,6 @@
 #pragma once
 
-#include "FieldParameters.h"
+#include "Parameters.h"
 
 // диалоговое окно CfieldDlg
 
@@ -20,12 +20,14 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 public:
-	data FieldParameters;
+	fieldData FieldParameters;
+	CString *Dlls;
 	CRect DrawArea;
 	int n;
 	int **matrix;
 	int upperleftCellCoords[2];
-	void DrawRobot(int x, int y, int r, int g, int b);
+	robot *robots;
+	void DrawRobot(int x, int y, /*int r, int g, int b*/ COLORREF color);
 	void DrawRobots();
 	afx_msg void OnBnClickedOk();
 	afx_msg void OnPaint();

@@ -3,8 +3,10 @@
 //
 
 #pragma once
-#include "FieldParameters.h"
+#include "Parameters.h"
 #include "CfieldDlg.h"
+
+using namespace std;
 
 // диалоговое окно CrobottournamentDlg
 class CrobottournamentDlg : public CDialogEx
@@ -32,10 +34,15 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	CfieldDlg Field;
-	data Data;
+	fieldData Data;
 	afx_msg void OnBnClickedOk();
 	int fieldHeight;
 	int fieldWidth;
+	CString PathToDllList;
+	int robotsNumber;
+	void CountRobots();
+	void LoadRobots();
+	afx_msg void OnBnClickedButtonLoaddll();
 };
 
 

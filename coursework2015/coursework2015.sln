@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "robottournament", "robottournament\robottournament.vcxproj", "{52019F94-E8C3-43B8-B763-DFB24DC96047}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "robotbase", "robotbase\robotbase.vcxproj", "{E4CF1796-1C49-4A86-A682-82020170F3C1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -13,6 +15,10 @@ Global
 		{52019F94-E8C3-43B8-B763-DFB24DC96047}.Debug|Win32.Build.0 = Debug|Win32
 		{52019F94-E8C3-43B8-B763-DFB24DC96047}.Release|Win32.ActiveCfg = Release|Win32
 		{52019F94-E8C3-43B8-B763-DFB24DC96047}.Release|Win32.Build.0 = Release|Win32
+		{E4CF1796-1C49-4A86-A682-82020170F3C1}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E4CF1796-1C49-4A86-A682-82020170F3C1}.Debug|Win32.Build.0 = Debug|Win32
+		{E4CF1796-1C49-4A86-A682-82020170F3C1}.Release|Win32.ActiveCfg = Release|Win32
+		{E4CF1796-1C49-4A86-A682-82020170F3C1}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
