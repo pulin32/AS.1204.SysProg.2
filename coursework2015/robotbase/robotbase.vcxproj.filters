@@ -30,9 +30,12 @@
     <ClInclude Include="robotbase.h">
       <Filter>Заголовочные файлы</Filter>
     </ClInclude>
+<<<<<<< HEAD
     <ClInclude Include="robostuff.h">
       <Filter>Заголовочные файлы</Filter>
     </ClInclude>
+=======
+>>>>>>> origin/master
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

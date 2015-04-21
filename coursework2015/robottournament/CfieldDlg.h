@@ -27,10 +27,15 @@ public:
 	int n;
 	int **matrix;
 	int upperleftCellCoords[2];
+<<<<<<< HEAD
 	robot **robots;
 	object **objects;
 	void DrawRobot(int x, int y, /*int r, int g, int b*/ COLORREF color);
 	void DrawObject(int x, int y, int type);
+=======
+	robot *robots;
+	void DrawRobot(int x, int y, /*int r, int g, int b*/ COLORREF color);
+>>>>>>> origin/master
 	void DrawRobots();
 	//UINT thread(LPVOID pParam);
 	int actingRobot;

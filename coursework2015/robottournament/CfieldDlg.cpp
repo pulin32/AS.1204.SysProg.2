@@ -29,11 +29,18 @@ CfieldDlg::~CfieldDlg()
 	for (int i=0;i<FieldParameters.fieldWidth;i++)
 		delete matrix[i];
 	delete matrix;
+<<<<<<< HEAD
 	for (int i=0;i<FieldParameters.rivals;i++)
 		delete robots[i];
 		//FreeLibrary(robots[i].Library);
 			//delete robots[i].Library;
 	delete robots;
+=======
+	//for (int i=0;i<FieldParameters.rivals;i++)
+		//FreeLibrary(robots[i].Library);
+			//delete robots[i].Library;
+	//delete robots;
+>>>>>>> origin/master
 }
 
 void CfieldDlg::DoDataExchange(CDataExchange* pDX)
@@ -127,6 +134,7 @@ void CfieldDlg::OnPaint()
 		ycoor+=DrawArea.bottom/n;
 	}
 	// Не вызывать CDialogEx::OnPaint() для сообщений рисования
+<<<<<<< HEAD
 	/*int xlocal = 0;
 	int ylocal = 0;
 	int xreal, yreal;
@@ -189,6 +197,11 @@ void CfieldDlg::DrawRobot(int x, int y, /*int r = 0, int g = 255, int b = 0*/ CO
 }
 
 void CfieldDlg::DrawObject(int x, int y, int type)
+=======
+}
+
+void CfieldDlg::DrawRobot(int x, int y, /*int r = 0, int g = 255, int b = 0*/ COLORREF color)
+>>>>>>> origin/master
 {
 	COLORREF color;
 	if (type == OBJ_CHARGER)
@@ -197,8 +210,15 @@ void CfieldDlg::DrawObject(int x, int y, int type)
 		color = RGB(255,0,0);
 	CClientDC dc(this);
 	GetClientRect(&DrawArea);
+<<<<<<< HEAD
 	CPen Pen(PS_SOLID,2,color);
 	dc.SelectObject(Pen);
+=======
+	//CPen Pen(PS_SOLID,2,RGB(r,g,b));
+	//CBrush Brush(RGB(r,g,b));
+	CBrush Brush(color);
+	dc.SelectObject(Brush);
+>>>>>>> origin/master
 	int side = DrawArea.bottom/n;
 	dc.MoveTo(x*side+1,y*side+1);
 	dc.LineTo(x*side+side,y*side+side);
@@ -229,10 +249,15 @@ void CfieldDlg::DrawRobots()
 				yreal+=FieldParameters.fieldHeight;
 			if (yreal>=FieldParameters.fieldHeight)
 				yreal-=FieldParameters.fieldHeight;
+<<<<<<< HEAD
 			if (matrix[xreal][yreal] > -1)
 				DrawRobot(xlocal,ylocal,robots[matrix[xreal][yreal]]->color);
 			if (matrix[xreal][yreal] < -1)
 				DrawObject(xlocal,ylocal,matrix[xreal][yreal]);
+=======
+			if (matrix[xreal][yreal] != -1)
+				DrawRobot(xlocal,ylocal,robots[matrix[xreal][yreal]].color);
+>>>>>>> origin/master
 			ylocal++;
 		}
 		xlocal++;
@@ -241,6 +266,7 @@ void CfieldDlg::DrawRobots()
 }
 
 
+<<<<<<< HEAD
 
 //int actingRobot;
 
@@ -423,12 +449,17 @@ void CfieldDlg::Play()
 
 
 //typedef void (*PF)();
+=======
+//typedef void (*PF)();
+
+>>>>>>> origin/master
 void CfieldDlg::OnBnClickedButton1()
 {
 	/*HINSTANCE hLib = LoadLibrary("robotbase.dll");
 	PF ff = (PF)GetProcAddress(hLib, "DoStep");
 	ff();*/
 
+<<<<<<< HEAD
 	//robots[0]->DoStep();
 
 	srand(time(NULL));
@@ -460,6 +491,11 @@ void CfieldDlg::OnBnClickedButton1()
 		objects[i]->x = xrand;
 		objects[i]->y = yrand;
 	}
+=======
+	srand (time(NULL));
+	int xrand = 0;
+	int yrand = 0;
+>>>>>>> origin/master
 	for (int i=0; i<FieldParameters.rivals; i++)
 	{
 		do
@@ -469,9 +505,16 @@ void CfieldDlg::OnBnClickedButton1()
 		}
 		while (matrix[xrand][yrand] != -1);
 		matrix[xrand][yrand] = i;
+<<<<<<< HEAD
 		robots[i]->x = xrand;
 		robots[i]->y = yrand;
 	}
+=======
+		robots[i].x = xrand;
+		robots[i].y = yrand;
+	}
+
+>>>>>>> origin/master
 	DrawRobots();
 	Play();	
 }

@@ -7,6 +7,7 @@
 using namespace std;
 
 extern "C" 
+<<<<<<< HEAD
 void DoStep(stepinfo *Info, step *Step)
 {
 	//AfxMessageBox("DLL");
@@ -20,5 +21,10 @@ void DoStep(stepinfo *Info, step *Step)
 	Step->actions[0].dx = rand() % 3 - 1;
 	Step->actions[0].dy = rand() % 3 - 1;
 	SetEvent(CommitStep);
+=======
+void DoStep()
+{
+	AfxMessageBox("DLL");
+>>>>>>> origin/master
 	return;
 }
