@@ -1,7 +1,8 @@
 #pragma once
 
-#include "FieldParameters.h"
+#include "Parameters.h"
 
+using namespace std;
 // диалоговое окно CfieldDlg
 
 class CfieldDlg : public CDialogEx
@@ -20,13 +21,22 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 public:
-	data FieldParameters;
+	fieldData FieldParameters;
+	CString *Dlls;
 	CRect DrawArea;
 	int n;
 	int **matrix;
 	int upperleftCellCoords[2];
-	void DrawRobot(int x, int y, int r, int g, int b);
+	robot **robots;
+	object **objects;
+	void DrawRobot(int x, int y, /*int r, int g, int b*/ COLORREF color);
+	void DrawObject(int x, int y, int type);
 	void DrawRobots();
+	//UINT thread(LPVOID pParam);
+	int actingRobot;
+	//step *Step;
+	void Play();
+	step *history;
 	afx_msg void OnBnClickedOk();
 	afx_msg void OnPaint();
 	afx_msg void OnBnClickedButton1();

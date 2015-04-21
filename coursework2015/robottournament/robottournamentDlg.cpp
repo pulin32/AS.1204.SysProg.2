@@ -6,6 +6,7 @@
 #include "robottournament.h"
 #include "robottournamentDlg.h"
 #include "afxdialogex.h"
+#include <fstream>
 //#include "CfieldDlg.h"
 
 #ifdef _DEBUG
@@ -52,6 +53,7 @@ CrobottournamentDlg::CrobottournamentDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(CrobottournamentDlg::IDD, pParent)
 	, fieldHeight(1000)
 	, fieldWidth(1000)
+	, PathToDllList(_T("list.txt"))
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -61,6 +63,7 @@ void CrobottournamentDlg::DoDataExchange(CDataExchange* pDX)
 	CDialogEx::DoDataExchange(pDX);
 	DDX_Text(pDX, IDC_EDIT1, fieldHeight);
 	DDX_Text(pDX, IDC_EDIT2, fieldWidth);
+	DDX_Text(pDX, IDC_EDIT_DLLLIST, PathToDllList);
 }
 
 BEGIN_MESSAGE_MAP(CrobottournamentDlg, CDialogEx)
@@ -68,6 +71,7 @@ BEGIN_MESSAGE_MAP(CrobottournamentDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	ON_BN_CLICKED(IDOK, &CrobottournamentDlg::OnBnClickedOk)
+	ON_BN_CLICKED(IDC_BUTTON_LOADDLL, &CrobottournamentDlg::OnBnClickedButtonLoaddll)
 END_MESSAGE_MAP()
 
 
@@ -103,6 +107,7 @@ BOOL CrobottournamentDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// Мелкий значок
 
 	// TODO: добавьте дополнительную инициализацию
+	robotsNumber = 0;
 
 	return TRUE;  // возврат значения TRUE, если фокус не передан элементу управления
 }
@@ -163,35 +168,122 @@ void CrobottournamentDlg::OnBnClickedOk()
 	// TODO: добавьте свой код обработчика уведомлений
 	
 	//data *Data = new data;
-	UpdateData(TRUE);
+	UpdateData();
 	if (fieldHeight < 20 || fieldWidth < 20)
 		AfxMessageBox("Поле слишком маленькое");
+	else if (robotsNumber == 0)
+		AfxMessageBox("Роботы не загружены");
 	else
 	{
 		Data.fieldHeight = fieldHeight;
 		Data.fieldWidth = fieldWidth;
-		Data.rivals=10;
+		Data.rivals = robotsNumber;
 		Field.FieldParameters = Data;
 
+		Field.history = new step[robotsNumber];
 		Field.matrix = new int*[fieldWidth];
 		for (int i=0; i<fieldWidth; i++)
 			Field.matrix[i] = new int[fieldHeight];
 		for (int i=0; i<fieldWidth; i++)
 		{
 			for (int j=0; j<fieldHeight; j++)
-				Field.matrix[i][j] = 0;
+				Field.matrix[i][j] = -1;
 		}
-		Field.matrix[10][3] = 1;		//TEST!!!!!!!!!!!!!!!!!!!!!!
-		Field.matrix[5][8] = 1;		//////////////
+		Field.objects = new object*[Ne+Nl];
+		for (int i=0; i<Ne+Nl; i++)
+			Field.objects[i] = new object;
+
+		LoadRobots();
+		//Field.matrix[10][3] = 100;		//TEST!!!!!!!!!!!!!!!!!!!!!!
+		/*Field.matrix[5][8] = 1;		//////////////
 		Field.matrix[25][10] = 1;		//////////////right
 		Field.matrix[30][8] = 1;		//////////////
 		Field.matrix[21][10] = 1;		//////////////
 		Field.matrix[10][21] = 1;		//////////////bottom
 		Field.matrix[15][30] = 1;		//////////////
 		Field.matrix[7][24] = 1;		//////////////
+		Field.matrix[999][5] = 1;		//////////////left
+		Field.matrix[995][8] = 1;		//////////////
+		Field.matrix[7][998] = 1;		//////////////up
+		Field.matrix[10][993] = 1;		//////////////    */
 
 		this->ShowWindow(SW_HIDE);
 		Field.DoModal();
 		CDialogEx::OnOK();
 	}
+}
+
+
+void CrobottournamentDlg::OnBnClickedButtonLoaddll()
+{
+	UpdateData();
+	robotsNumber = 0;
+	CFileDialog fd(true);
+	if (fd.DoModal()==IDOK) 
+	{ 
+		PathToDllList=fd.GetPathName();
+		UpdateData(false);
+		CountRobots();
+	} 
+}
+
+
+void CrobottournamentDlg::CountRobots()
+{
+	ifstream List(PathToDllList);
+	char c;
+	char buffer[3];
+	while(List.get(c))
+	{
+		if (c=='.')
+		{
+			if (List.read(buffer,3) && buffer[0] == 'd' && buffer[1] == 'l' && buffer[2] == 'l')
+				robotsNumber++;
+			else
+			{
+				List.unget(); List.unget(); List.unget();
+			}
+		}
+	}
+	List.close();
+}
+
+
+void CrobottournamentDlg::LoadRobots()
+{
+	Field.robots = new robot*[Data.rivals];
+	for (int i=0; i<Data.rivals; i++)
+		Field.robots[i] = new robot;
+	ifstream List(PathToDllList);
+	char c;
+	char buffer[3];
+	CString name = "";
+	int i = 0;
+	HINSTANCE hLib;
+	srand (time(NULL));;
+	while(List.get(c))
+	{
+		if (c=='.')
+		{
+			if (List.read(buffer,3) && buffer[0] == 'd' && buffer[1] == 'l' && buffer[2] == 'l')
+			{
+				Field.robots[i]->name = name/*.c_str()*/;
+				name+=".dll";
+				//Field.robots[i]->Library = LoadLibrary(name);
+				hLib = LoadLibrary(name);
+				Field.robots[i]->DoStep = (robobrain)GetProcAddress(hLib, "DoStep");
+				Field.robots[i++]->color = RGB(rand() % 256, rand() % 256, rand() % 256);
+				name="";
+			}
+			else
+			{
+				List.unget(); List.unget(); List.unget();
+				name+=c;
+			}
+		}
+		else
+			if (c != '\n')
+				name+=c;
+	}
+	List.close();
 }
