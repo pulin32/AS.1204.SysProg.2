@@ -4,6 +4,8 @@
 // использующем данную DLL. Благодаря этому любой другой проект, чьи исходные файлы включают данный файл, видит 
 // функции ROBOTBASE_API как импортированные из DLL, тогда как данная DLL видит символы,
 // определяемые данным макросом, как экспортированные.
+
+#include "robostuff.h"
 #ifdef ROBOTBASE_EXPORTS
 #define ROBOTBASE_API __declspec(dllexport)
 #else
@@ -21,4 +23,4 @@ extern ROBOTBASE_API int nrobotbase;
 
 ROBOTBASE_API int fnrobotbase(void);
 
-extern "C" ROBOTBASE_API void DoStep();
+extern "C" ROBOTBASE_API void DoStep(stepinfo *Info, step *Step);

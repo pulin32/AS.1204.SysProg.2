@@ -53,7 +53,7 @@ CrobottournamentDlg::CrobottournamentDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(CrobottournamentDlg::IDD, pParent)
 	, fieldHeight(1000)
 	, fieldWidth(1000)
-	, PathToDllList(_T(""))
+	, PathToDllList(_T("list.txt"))
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -177,9 +177,10 @@ void CrobottournamentDlg::OnBnClickedOk()
 	{
 		Data.fieldHeight = fieldHeight;
 		Data.fieldWidth = fieldWidth;
-		Data.rivals=robotsNumber;
+		Data.rivals = robotsNumber;
 		Field.FieldParameters = Data;
 
+		Field.history = new step[robotsNumber];
 		Field.matrix = new int*[fieldWidth];
 		for (int i=0; i<fieldWidth; i++)
 			Field.matrix[i] = new int[fieldHeight];
@@ -188,9 +189,12 @@ void CrobottournamentDlg::OnBnClickedOk()
 			for (int j=0; j<fieldHeight; j++)
 				Field.matrix[i][j] = -1;
 		}
+		Field.objects = new object*[Ne+Nl];
+		for (int i=0; i<Ne+Nl; i++)
+			Field.objects[i] = new object;
 
 		LoadRobots();
-		Field.matrix[10][3] = 100;		//TEST!!!!!!!!!!!!!!!!!!!!!!
+		//Field.matrix[10][3] = 100;		//TEST!!!!!!!!!!!!!!!!!!!!!!
 		/*Field.matrix[5][8] = 1;		//////////////
 		Field.matrix[25][10] = 1;		//////////////right
 		Field.matrix[30][8] = 1;		//////////////
@@ -247,13 +251,15 @@ void CrobottournamentDlg::CountRobots()
 
 void CrobottournamentDlg::LoadRobots()
 {
-	Field.robots = new robot[Data.rivals];
+	Field.robots = new robot*[Data.rivals];
+	for (int i=0; i<Data.rivals; i++)
+		Field.robots[i] = new robot;
 	ifstream List(PathToDllList);
 	char c;
 	char buffer[3];
-	string name = "";
+	CString name = "";
 	int i = 0;
-	//HINSTANCE hLib;
+	HINSTANCE hLib;
 	srand (time(NULL));;
 	while(List.get(c))
 	{
@@ -261,11 +267,14 @@ void CrobottournamentDlg::LoadRobots()
 		{
 			if (List.read(buffer,3) && buffer[0] == 'd' && buffer[1] == 'l' && buffer[2] == 'l')
 			{
-				Field.robots[i].name = name.c_str();
+				Field.robots[i]->name = name/*.c_str()*/;
 				name+=".dll";
-				Field.robots[i].Library = LoadLibrary("name");
-				//Field.robots[i].DoStep = (robobrain)GetProcAddress(hLib, "DoStep");
-				Field.robots[i++].color = RGB(rand() % 256, rand() % 256, rand() % 256);
+				//Field.robots[i]->Library = LoadLibrary(name);
+				hLib = LoadLibrary(name);
+				Field.robots[i]->alive = true;
+				Field.robots[i]->kills = 0;
+				Field.robots[i]->DoStep = (robobrain)GetProcAddress(hLib, "DoStep");
+				Field.robots[i++]->color = RGB(rand() % 256, rand() % 256, rand() % 256);
 				name="";
 			}
 			else

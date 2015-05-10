@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "Parameters.h"
+//#include "Parameters.h"
 #include "CfieldDlg.h"
 
 using namespace std;
