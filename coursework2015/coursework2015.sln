@@ -4,6 +4,10 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "robottournament", "robottournament\robottournament.vcxproj", "{52019F94-E8C3-43B8-B763-DFB24DC96047}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E4CF1796-1C49-4A86-A682-82020170F3C1} = {E4CF1796-1C49-4A86-A682-82020170F3C1}
+		{3AF440FC-ECD7-4F9B-818B-7B12ED8299B4} = {3AF440FC-ECD7-4F9B-818B-7B12ED8299B4}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Robots", "Robots", "{02F8D234-664C-4B6D-9F9E-956E542172A1}"
 EndProject
