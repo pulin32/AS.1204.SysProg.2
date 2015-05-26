@@ -1,9 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "robottournament", "robottournament\robottournament.vcxproj", "{52019F94-E8C3-43B8-B763-DFB24DC96047}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "robotbase", "robotbase\robotbase.vcxproj", "{E4CF1796-1C49-4A86-A682-82020170F3C1}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Robots", "Robots", "{02F8D234-664C-4B6D-9F9E-956E542172A1}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "robotbase.01", "Robots\robotbase.01\robotbase.01.vcxproj", "{E4CF1796-1C49-4A86-A682-82020170F3C1}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "robotbase.02", "Robots\robotbase.02\robotbase.02.vcxproj", "{3AF440FC-ECD7-4F9B-818B-7B12ED8299B4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,8 +25,16 @@ Global
 		{E4CF1796-1C49-4A86-A682-82020170F3C1}.Debug|Win32.Build.0 = Debug|Win32
 		{E4CF1796-1C49-4A86-A682-82020170F3C1}.Release|Win32.ActiveCfg = Release|Win32
 		{E4CF1796-1C49-4A86-A682-82020170F3C1}.Release|Win32.Build.0 = Release|Win32
+		{3AF440FC-ECD7-4F9B-818B-7B12ED8299B4}.Debug|Win32.ActiveCfg = Debug|Win32
+		{3AF440FC-ECD7-4F9B-818B-7B12ED8299B4}.Debug|Win32.Build.0 = Debug|Win32
+		{3AF440FC-ECD7-4F9B-818B-7B12ED8299B4}.Release|Win32.ActiveCfg = Release|Win32
+		{3AF440FC-ECD7-4F9B-818B-7B12ED8299B4}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E4CF1796-1C49-4A86-A682-82020170F3C1} = {02F8D234-664C-4B6D-9F9E-956E542172A1}
+		{3AF440FC-ECD7-4F9B-818B-7B12ED8299B4} = {02F8D234-664C-4B6D-9F9E-956E542172A1}
 	EndGlobalSection
 EndGlobal

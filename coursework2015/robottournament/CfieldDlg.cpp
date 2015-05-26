@@ -192,23 +192,29 @@ void CfieldDlg::Play()
 			threadData->Function = robots[actingRobot]->DoStep;
 			threadData->Info = Stepinfo;
 			threadData->Step = Step;
-			HANDLE hThread = AfxBeginThread(thread,threadData);
-			WaitForSingleObject(hThread,T);
+			CWinThread* pThread = AfxBeginThread(thread, threadData);
+			auto result = WaitForSingleObject(pThread->m_hThread, T);
+			if (result != WAIT_OBJECT_0)
+			{
+				TerminateThread(pThread->m_hThread, 0);
+				delete Step;
+				continue;
+			}
 			history[actingRobot] = *Step;
 			if (Step)
 			{
 				int curx = robots[actingRobot]->x;
 				int cury = robots[actingRobot]->y;
-				for (int i = 0; i<Step->numberOfActions; i++)
+				for (auto& action: Step->actions)
 				{
-					switch (Step->actions[i].act)
+					switch (action.act)
 					{
 						case ACT_MOVE:
 							{
-								if (sqrt(pow(Step->actions[i].dx,2) + pow(Step->actions[i].dy,2)) <= Vmax*robots[actingRobot]->V/Lmax*robots[actingRobot]->E/Emax)
+								if (sqrt(pow(action.dx, 2) + pow(action.dy, 2)) <= Vmax*robots[actingRobot]->V / Lmax*robots[actingRobot]->E / Emax)
 								{
-									int newx = curx+Step->actions->dx;
-									int newy = cury+Step->actions->dy;
+									int newx = curx + action.dx;
+									int newy = cury + action.dy;
 									if (newx<0)
 										newx+=FieldParameters.fieldWidth;
 									else if (newx>=FieldParameters.fieldWidth)
@@ -258,10 +264,10 @@ void CfieldDlg::Play()
 							}
 						case ACT_ATTACK:
 							{
-								if ( (sqrt(pow(Step->actions[i].dx,2) + pow(Step->actions[i].dy,2)) <= Rmax*robots[actingRobot]->V/Lmax*robots[actingRobot]->E/Emax)/* && (Step->actions[i].power <= robots[actingRobot]->A*robots[actingRobot]->E/Emax) */)
+								if ((sqrt(pow(action.dx, 2) + pow(action.dy, 2)) <= Rmax*robots[actingRobot]->V / Lmax*robots[actingRobot]->E / Emax)/* && (Step->actions[i].power <= robots[actingRobot]->A*robots[actingRobot]->E/Emax) */)
 								{
-									int destx = robots[actingRobot]->x + Step->actions[i].dx;
-									int desty = robots[actingRobot]->y + Step->actions[i].dy;
+									int destx = robots[actingRobot]->x + action.dx;
+									int desty = robots[actingRobot]->y + action.dy;
 									int victim = matrix[destx][desty];
 									if (victim != -1)
 									{
@@ -304,12 +310,12 @@ void CfieldDlg::Play()
 						case ACT_TECH:
 							{
 								int Lcur = robots[actingRobot]->A + robots[actingRobot]->P + robots[actingRobot]->V;
-								int Ldes = Step->actions[i].A + Step->actions[i].P + Step->actions[i].V;
+								int Ldes = action.A + action.P + action.V;
 								if (Ldes <= Lcur)
 								{
-									robots[actingRobot]->A = Step->actions[i].A;
-									robots[actingRobot]->P = Step->actions[i].P;
-									robots[actingRobot]->V = Step->actions[i].V;
+									robots[actingRobot]->A = action.A;
+									robots[actingRobot]->P = action.P;
+									robots[actingRobot]->V = action.V;
 								}
 								break;
 							}

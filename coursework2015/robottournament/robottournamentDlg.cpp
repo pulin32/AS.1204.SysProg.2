@@ -169,6 +169,7 @@ void CrobottournamentDlg::OnBnClickedOk()
 	
 	//data *Data = new data;
 	UpdateData();
+	CountRobots();
 	if (fieldHeight < 20 || fieldWidth < 20)
 		AfxMessageBox("Поле слишком маленькое");
 	else if (robotsNumber == 0)
@@ -223,13 +224,14 @@ void CrobottournamentDlg::OnBnClickedButtonLoaddll()
 	{ 
 		PathToDllList=fd.GetPathName();
 		UpdateData(false);
-		CountRobots();
 	} 
 }
 
 
 void CrobottournamentDlg::CountRobots()
 {
+	if (!PathFileExists(PathToDllList))
+		return;
 	ifstream List(PathToDllList);
 	char c;
 	char buffer[3];

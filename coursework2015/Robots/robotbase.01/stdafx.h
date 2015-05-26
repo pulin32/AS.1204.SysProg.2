@@ -26,9 +26,10 @@
 #endif // _AFX_NO_AFXCMN_SUPPORT
 
 #include <iostream>
+#include <vector>
 // Файлы заголовков Windows:
 #include <windows.h>
-
+using namespace std;
 
 
 // TODO: Установите здесь ссылки на дополнительные заголовки, требующиеся для программы
