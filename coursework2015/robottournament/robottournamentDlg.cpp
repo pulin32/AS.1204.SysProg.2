@@ -51,9 +51,23 @@ END_MESSAGE_MAP()
 
 CrobottournamentDlg::CrobottournamentDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(CrobottournamentDlg::IDD, pParent)
-	, fieldHeight(1000)
-	, fieldWidth(1000)
-	, PathToDllList(_T("list.txt"))
+	, fieldHeight(20)
+	, fieldWidth(20)
+	, PathToDllList(_T(""))
+	, N(1000)
+	, T(100)
+	, Emax(1000)
+	, Lmax(100)
+	, Vmax(50)
+	, Rmax(5)
+	, dL(10)
+	, dEs(1)
+	, dEv(2)
+	, dEa(10)
+	, dEp(5)
+	, dE(100)
+	, Ne(10)
+	, Nl(10)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -64,6 +78,20 @@ void CrobottournamentDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT1, fieldHeight);
 	DDX_Text(pDX, IDC_EDIT2, fieldWidth);
 	DDX_Text(pDX, IDC_EDIT_DLLLIST, PathToDllList);
+	DDX_Text(pDX, IDC_EDIT4, N);
+	DDX_Text(pDX, IDC_EDIT5, T);
+	DDX_Text(pDX, IDC_EDIT6, Emax);
+	DDX_Text(pDX, IDC_EDIT7, Lmax);
+	DDX_Text(pDX, IDC_EDIT8, Vmax);
+	DDX_Text(pDX, IDC_EDIT9, Rmax);
+	DDX_Text(pDX, IDC_EDIT10, dL);
+	DDX_Text(pDX, IDC_EDIT11, dEs);
+	DDX_Text(pDX, IDC_EDIT12, dEv);
+	DDX_Text(pDX, IDC_EDIT13, dEa);
+	DDX_Text(pDX, IDC_EDIT14, dEp);
+	DDX_Text(pDX, IDC_EDIT15, dE);
+	DDX_Text(pDX, IDC_EDIT16, Ne);
+	DDX_Text(pDX, IDC_EDIT17, Nl);
 }
 
 BEGIN_MESSAGE_MAP(CrobottournamentDlg, CDialogEx)
@@ -169,7 +197,7 @@ void CrobottournamentDlg::OnBnClickedOk()
 	
 	//data *Data = new data;
 	UpdateData();
-	if (fieldHeight < 20 || fieldWidth < 20)
+	if (fieldHeight < fieldSide || fieldWidth < fieldSide)
 		AfxMessageBox("Поле слишком маленькое");
 	else if (robotsNumber == 0)
 		AfxMessageBox("Роботы не загружены");
@@ -178,20 +206,36 @@ void CrobottournamentDlg::OnBnClickedOk()
 		Data.fieldHeight = fieldHeight;
 		Data.fieldWidth = fieldWidth;
 		Data.rivals = robotsNumber;
-		Field.FieldParameters = Data;
+		Data.dE = dE;
+		Data.dEa = dEa;
+		Data.dEp = dEp;
+		Data.dEs = dEs;
+		Data.dEv = dEv;
+		Data.dL = dL;
+		Data.Emax = Emax;
+		Data.Lmax = Lmax;
+		Data.N = N;
+		Data.Ne = Ne;
+		Data.Nl = Nl;
+		Data.Rmax = Rmax;
+		Data.T = T;
+		Data.Vmax = Vmax;
+		Field.paintDlg.FieldParameters = Data;
 
-		Field.history = new step[robotsNumber];
-		Field.matrix = new int*[fieldWidth];
+		Field.history = new step*[robotsNumber];
+		for (int i=0; i<robotsNumber; i++)
+			Field.history[i] = NULL;
+		Field.paintDlg.matrix = new int*[fieldWidth];
 		for (int i=0; i<fieldWidth; i++)
-			Field.matrix[i] = new int[fieldHeight];
+			Field.paintDlg.matrix[i] = new int[fieldHeight];
 		for (int i=0; i<fieldWidth; i++)
 		{
 			for (int j=0; j<fieldHeight; j++)
-				Field.matrix[i][j] = -1;
+				Field.paintDlg.matrix[i][j] = -1;
 		}
-		Field.objects = new object*[Ne+Nl];
-		for (int i=0; i<Ne+Nl; i++)
-			Field.objects[i] = new object;
+		Field.paintDlg.objects = new object*[Data.Ne+Data.Nl];
+		for (int i=0; i<Data.Ne+Data.Nl; i++)
+			Field.paintDlg.objects[i] = new object;
 
 		LoadRobots();
 		//Field.matrix[10][3] = 100;		//TEST!!!!!!!!!!!!!!!!!!!!!!
@@ -251,9 +295,10 @@ void CrobottournamentDlg::CountRobots()
 
 void CrobottournamentDlg::LoadRobots()
 {
-	Field.robots = new robot*[Data.rivals];
+	//Field.paintDlg.cameraLock = new int[Data.rivals+1];
+	Field.paintDlg.robots = new robot*[Data.rivals];
 	for (int i=0; i<Data.rivals; i++)
-		Field.robots[i] = new robot;
+		Field.paintDlg.robots[i] = new robot;
 	ifstream List(PathToDllList);
 	char c;
 	char buffer[3];
@@ -267,14 +312,24 @@ void CrobottournamentDlg::LoadRobots()
 		{
 			if (List.read(buffer,3) && buffer[0] == 'd' && buffer[1] == 'l' && buffer[2] == 'l')
 			{
-				Field.robots[i]->name = name/*.c_str()*/;
+				Field.paintDlg.robots[i]->name = name/*.c_str()*/;
 				name+=".dll";
 				//Field.robots[i]->Library = LoadLibrary(name);
 				hLib = LoadLibrary(name);
-				Field.robots[i]->alive = true;
-				Field.robots[i]->kills = 0;
-				Field.robots[i]->DoStep = (robobrain)GetProcAddress(hLib, "DoStep");
-				Field.robots[i++]->color = RGB(rand() % 256, rand() % 256, rand() % 256);
+				Field.paintDlg.robots[i]->killed = false;
+				Field.paintDlg.robots[i]->alive = true;
+				Field.paintDlg.robots[i]->kills = 0;
+				Field.paintDlg.robots[i]->E = Data.Emax;
+				Field.paintDlg.robots[i]->A = (Data.Lmax - Data.Vmax)/2;
+				Field.paintDlg.robots[i]->V = Data.Vmax;
+				Field.paintDlg.robots[i]->P =(Data.Lmax - Data.Vmax)/2;
+				Field.paintDlg.robots[i]->L = Data.Lmax;
+				Field.paintDlg.robots[i]->newA = Field.paintDlg.robots[i]->A;
+				Field.paintDlg.robots[i]->newP = Field.paintDlg.robots[i]->P;
+				Field.paintDlg.robots[i]->newL = Field.paintDlg.robots[i]->L;
+				Field.paintDlg.robots[i]->newE = Field.paintDlg.robots[i]->E;
+				Field.paintDlg.robots[i]->DoStep = (robobrain)GetProcAddress(hLib, "DoStep");
+				Field.paintDlg.robots[i++]->color = RGB(rand() % 256, rand() % 256, rand() % 256);
 				name="";
 			}
 			else

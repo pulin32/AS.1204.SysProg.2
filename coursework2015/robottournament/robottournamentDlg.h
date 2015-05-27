@@ -43,6 +43,20 @@ public:
 	void CountRobots();
 	void LoadRobots();
 	afx_msg void OnBnClickedButtonLoaddll();
+	int N;
+	int T;
+	int Emax;
+	int Lmax;
+	int Vmax;
+	int Rmax;
+	int dL;
+	int dEs;
+	int dEv;
+	int dEa;
+	int dEp;
+	int dE;
+	int Ne;
+	int Nl;
 };
 
 

@@ -8,35 +8,56 @@
 #include "afxdialogex.h"
 #include <fstream>
 #include "math.h"
+#include <string>
 
 
 // диалоговое окно CfieldDlg
 
 IMPLEMENT_DYNAMIC(CfieldDlg, CDialogEx)
 
-CfieldDlg::CfieldDlg(CWnd* pParent /*=NULL*/)
+	CfieldDlg::CfieldDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(CfieldDlg::IDD, pParent)
+	, rx(0)
+	, ry(0)
+	, rE(0)
+	, rL(0)
+	, rA(0)
+	, rP(0)
+	, rV(0)
+	, stepNumber(0)
+	, infoLock(-1)
 {
-	upperleftCellCoords[0] = 0;
+	/*upperleftCellCoords[0] = 0;
 	upperleftCellCoords[1] = 0;
-	n = 20;
+	n = 20;*/
 }
 
 CfieldDlg::~CfieldDlg()
 {
-	for (int i=0;i<FieldParameters.fieldWidth;i++)
-		delete matrix[i];
-	delete matrix;
-	for (int i=0;i<FieldParameters.rivals;i++)
-		delete robots[i];
-		//FreeLibrary(robots[i].Library);
-			//delete robots[i].Library;
-	delete robots;
+	for (int i=0;i<paintDlg.FieldParameters.fieldWidth;i++)
+		delete paintDlg.matrix[i];
+	delete [] paintDlg.matrix;
+	for (int i=0;i<paintDlg.FieldParameters.rivals;i++)
+		delete paintDlg.robots[i];
+	delete [] paintDlg.robots;
+	for (int i=0;i<paintDlg.FieldParameters.Ne+paintDlg.FieldParameters.Nl;i++)
+		delete paintDlg.objects[i];
+	delete [] paintDlg.objects;
 }
 
 void CfieldDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
+	DDX_Control(pDX, IDC_LIST1, m_ListBox);
+	DDX_Control(pDX, IDC_BUTTON1, m_StartButton);
+	DDX_Text(pDX, IDC_EDIT1, rx);
+	DDX_Text(pDX, IDC_EDIT2, ry);
+	DDX_Text(pDX, IDC_EDIT3, rE);
+	DDX_Text(pDX, IDC_EDIT18, rL);
+	DDX_Text(pDX, IDC_EDIT4, rA);
+	DDX_Text(pDX, IDC_EDIT5, rP);
+	DDX_Text(pDX, IDC_EDIT8, rV);
+	DDX_Text(pDX, IDC_EDIT9, stepNumber);
 }
 
 
@@ -49,6 +70,8 @@ BEGIN_MESSAGE_MAP(CfieldDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_DOWNBTN, &CfieldDlg::OnBnClickedDownbtn)
 	ON_BN_CLICKED(IDC_LEFTBTN, &CfieldDlg::OnBnClickedLeftbtn)
 	ON_BN_CLICKED(IDC_RIGHTBTN, &CfieldDlg::OnBnClickedRightbtn)
+	ON_BN_CLICKED(IDC_BUTTON2, &CfieldDlg::OnBnClickedButton2)
+	ON_LBN_SELCHANGE(IDC_LIST1, &CfieldDlg::OnLbnSelchangeList1)
 END_MESSAGE_MAP()
 
 
@@ -65,308 +88,330 @@ void CfieldDlg::OnPaint()
 {
 	CPaintDC dc(this); // device context for painting
 	//CRect DrawArea;
-	GetClientRect(&DrawArea);
-	DrawArea.right = DrawArea.bottom;
-	COLORREF GridColor = RGB(0,0,0);
-	double xcoor = DrawArea.left;
-	double ycoor = DrawArea.top;
-	CPen Pen(PS_SOLID,1,GridColor);
-	dc.SelectObject(&Pen);
-	//int n = 20;
-	for (int i=0;i<=n;i++)
-	{
-		dc.MoveTo(xcoor,ycoor);
-		dc.LineTo(xcoor,DrawArea.right);
-		xcoor+=DrawArea.right/n;
-	}
-	xcoor = DrawArea.left;
-	for (int i=0;i<=n;i++)
-	{
-		dc.MoveTo(xcoor,ycoor);
-		dc.LineTo(DrawArea.bottom,ycoor);
-		ycoor+=DrawArea.bottom/n;
-	}
+
 	// Ќе вызывать CDialogEx::OnPaint() дл€ сообщений рисовани€
 }
-
-
-void CfieldDlg::DrawRobot(int x, int y, COLORREF color)
-{
-	CClientDC dc(this);
-	GetClientRect(&DrawArea);
-	CBrush Brush(color);
-	dc.SelectObject(Brush);
-	int side = DrawArea.bottom/n;
-	Ellipse(dc,x*side+1,y*side+1,x*side+side,y*side+side);
-}
-
-void CfieldDlg::DrawObject(int x, int y, int type)
-{
-	COLORREF color;
-	if (type == OBJ_CHARGER)
-		color = RGB(0,0,255);
-	else //type == OBJ_TECH
-		color = RGB(255,0,0);
-	CClientDC dc(this);
-	GetClientRect(&DrawArea);
-	CPen Pen(PS_SOLID,2,color);
-	dc.SelectObject(Pen);
-	int side = DrawArea.bottom/n;
-	dc.MoveTo(x*side+1,y*side+1);
-	dc.LineTo(x*side+side,y*side+side);
-	dc.MoveTo(x*side+1,y*side+side);
-	dc.LineTo(x*side+side,y*side+1);
-}
-
-void CfieldDlg::DrawRobots()
-{
-	//WaitForSingleObject(PicCounted,INFINITE);
-	Invalidate();
-	//AfxGetApp()->PumpMessage();
-	OnPaint();
-	int xlocal = 0;
-	int ylocal = 0;
-	int xreal, yreal;
-	for (int x = upperleftCellCoords[0]; x < upperleftCellCoords[0]+n; x++)
-	{
-		xreal = x;
-		if (xreal<0)
-			xreal+=FieldParameters.fieldWidth;
-		if (xreal>=FieldParameters.fieldWidth)
-			xreal-=FieldParameters.fieldWidth;
-		for (int y = upperleftCellCoords[1]; y < upperleftCellCoords[1]+n; y++)
-		{
-			yreal = y;
-			if (yreal<0)
-				yreal+=FieldParameters.fieldHeight;
-			if (yreal>=FieldParameters.fieldHeight)
-				yreal-=FieldParameters.fieldHeight;
-			if (matrix[xreal][yreal] > -1)
-				DrawRobot(xlocal,ylocal,robots[matrix[xreal][yreal]]->color);
-			if (matrix[xreal][yreal] < -1)
-				DrawObject(xlocal,ylocal,matrix[xreal][yreal]);
-			ylocal++;
-		}
-		xlocal++;
-		ylocal = 0;
-	}
-}
-
-
-
-//int actingRobot;
 
 UINT thread(LPVOID pParam)
 {
 	toThread *Data = (toThread*)pParam;
 	Data->Function(Data->Info,Data->Step);
-	
+
 	return 0;
 }
 
 void CfieldDlg::Play()
 {
-	while (true)
+	while (stepNumber < paintDlg.FieldParameters.N && aliveRobots >= 1)
 	{
-		for (int actingRobot=0; actingRobot<FieldParameters.rivals && robots[actingRobot]->alive; actingRobot++)
+		stepNumber++;
+		stepinfo *Stepinfo = new stepinfo;
+		Stepinfo->stepnum = stepNumber;
+		Stepinfo->robots = new robot*[paintDlg.FieldParameters.rivals];
+		Stepinfo->objects = new object*[paintDlg.FieldParameters.Ne+paintDlg.FieldParameters.Nl];
+		Stepinfo->history = new step*[paintDlg.FieldParameters.rivals];
+		for (int i=0; i<paintDlg.FieldParameters.rivals; i++)
 		{
-			//Step = NULL;
-			//actingRobot = i;
-			toThread *threadData = new toThread;
-			step *Step = new step;
-			stepinfo *Stepinfo = new stepinfo;
-			/*Stepinfo->A = robots[actingRobot]->A;
-			Stepinfo->P = robots[actingRobot]->P;
-			Stepinfo->V = robots[actingRobot]->V;
-			Stepinfo->E = robots[actingRobot]->E;
-			Stepinfo->x = robots[actingRobot]->x;
-			Stepinfo->y = robots[actingRobot]->y;*/
-			Stepinfo->robots = new robot*[FieldParameters.rivals];
-			Stepinfo->objects = new object*[Ne+Nl];
-			for (int i=0; i<FieldParameters.rivals; i++)
-				Stepinfo->robots[i] = robots[i];
-			for (int i=0; i<Ne+Nl; i++)
-				Stepinfo->objects[i] = objects[i];
-
-			Stepinfo->history = history;
-			threadData->Function = robots[actingRobot]->DoStep;
-			threadData->Info = Stepinfo;
-			threadData->Step = Step;
-			HANDLE hThread = AfxBeginThread(thread,threadData);
-			WaitForSingleObject(hThread,T);
-			history[actingRobot] = *Step;
-			if (Step)
+			Stepinfo->robots[i] = paintDlg.robots[i];
+			Stepinfo->history[i] = history[i];
+		}
+		for (int i=0; i<paintDlg.FieldParameters.Ne+paintDlg.FieldParameters.Nl; i++)
+			Stepinfo->objects[i] = paintDlg.objects[i];
+		for (int actingRobot=0; actingRobot<paintDlg.FieldParameters.rivals; actingRobot++)
+		{
+			Stepinfo->yourNumber = actingRobot;
+			if (paintDlg.robots[actingRobot]->alive)
 			{
-				int curx = robots[actingRobot]->x;
-				int cury = robots[actingRobot]->y;
-				for (int i = 0; i<Step->numberOfActions; i++)
+				toThread *threadData = new toThread;
+				step *Step = new step;
+				//Step->nextAction = NULL;
+				Step->actions = new action*[3];
+				for (int i = 0; i<3; i++)
+					Step->actions[i] = NULL;
+
+				threadData->Function = paintDlg.robots[actingRobot]->DoStep;
+				threadData->Info = Stepinfo;
+				threadData->Step = Step;
+				HANDLE hThread = AfxBeginThread(thread,threadData)->m_hThread;
+				if (WaitForSingleObject(hThread, paintDlg.FieldParameters.T) == WAIT_TIMEOUT)
 				{
-					switch (Step->actions[i].act)
+					TerminateThread(hThread, NULL);
+					break;
+				}
+				delete history[actingRobot];	//очистка истории
+
+				history[actingRobot] = Step;
+				int curx = paintDlg.robots[actingRobot]->x;
+				int cury = paintDlg.robots[actingRobot]->y;
+				if (Step)
+				{
+					//for (int i = 0; i<Step->numberOfActions; i++)
+					for (int i = 0; i<3; i++)
 					{
-						case ACT_MOVE:
+						if (Step->actions[i])
+						{
+							switch (i)
 							{
-								if (sqrt(pow(Step->actions[i].dx,2) + pow(Step->actions[i].dy,2)) <= Vmax*robots[actingRobot]->V/Lmax*robots[actingRobot]->E/Emax)
+							case ACT_MOVE:
 								{
-									int newx = curx+Step->actions->dx;
-									int newy = cury+Step->actions->dy;
-									if (newx<0)
-										newx+=FieldParameters.fieldWidth;
-									else if (newx>=FieldParameters.fieldWidth)
-										newx-=FieldParameters.fieldWidth;
-									if (newy<0)
-										newy+=FieldParameters.fieldHeight;
-									else if (newy>=FieldParameters.fieldHeight)
-										newy-=FieldParameters.fieldHeight;
-									if (matrix[newx][newy] == -1)
+									if (sqrt(pow(Step->actions[i]->dx,2) + pow(Step->actions[i]->dy,2)) <= paintDlg.FieldParameters.Vmax*paintDlg.robots[actingRobot]->V/paintDlg.FieldParameters.Lmax*paintDlg.robots[actingRobot]->E/paintDlg.FieldParameters.Emax)
 									{
-										matrix[curx][cury] = -1;
-										matrix[newx][newy] = actingRobot;
-										robots[actingRobot]->x = newx;
-										robots[actingRobot]->y = newy;
-										robots[actingRobot]->E -= dEv;
-										for (int oi=-1; oi<=1; oi++)	//проверка наличи€ р€дом объектов
+										int newx = curx+Step->actions[i]->dx;
+										int newy = cury+Step->actions[i]->dy;
+										if (newx<0)
+											newx+=paintDlg.FieldParameters.fieldWidth;
+										else if (newx>=paintDlg.FieldParameters.fieldWidth)
+											newx-=paintDlg.FieldParameters.fieldWidth;
+										if (newy<0)
+											newy+=paintDlg.FieldParameters.fieldHeight;
+										else if (newy>=paintDlg.FieldParameters.fieldHeight)
+											newy-=paintDlg.FieldParameters.fieldHeight;
+										if (paintDlg.matrix[curx][cury] == actingRobot)
+											paintDlg.matrix[curx][cury] = -1;
+										paintDlg.robots[actingRobot]->x = newx;
+										paintDlg.robots[actingRobot]->y = newy;
+										paintDlg.robots[actingRobot]->newE -= paintDlg.FieldParameters.dEv;
+										if (paintDlg.matrix[newx][newy] == -1)	//если пуста€ клетка
+											paintDlg.matrix[newx][newy] = actingRobot;
+										else if (paintDlg.matrix[newx][newy] >-1 || paintDlg.matrix[newx][newy] == SEVERAL)	//если кто-то стоит
+											paintDlg.matrix[newx][newy] = SEVERAL;
+									}
+									break;
+								}
+							case ACT_ATTACK:
+								{
+									if ( (sqrt(pow(Step->actions[i]->dx,2) + pow(Step->actions[i]->dy,2)) <= paintDlg.FieldParameters.Rmax*paintDlg.robots[actingRobot]->V/paintDlg.FieldParameters.Lmax*paintDlg.robots[actingRobot]->E/paintDlg.FieldParameters.Emax)/* && (Step->actions[i].power <= robots[actingRobot]->A*robots[actingRobot]->E/Emax) */)
+									{
+										int destx = paintDlg.robots[actingRobot]->x + Step->actions[i]->dx;
+										int desty = paintDlg.robots[actingRobot]->y + Step->actions[i]->dy;
+										int victim = paintDlg.matrix[destx][desty];
+										if (victim != -1)
 										{
-											for (int oj=-1; oj<=1; oj++)
+											int a, b;
+											if (victim > -1)	//если в точке один робот
 											{
-												int ox = newx + oi;
-												int oy = newy + oj;
-												if (ox<0)
-													ox+=FieldParameters.fieldWidth;
-												else if (ox>=FieldParameters.fieldWidth)
-													ox-=FieldParameters.fieldWidth;
-												if (oy<0)
-													oy+=FieldParameters.fieldHeight;
-												else if (oy>=FieldParameters.fieldHeight)
-													oy-=FieldParameters.fieldHeight;
-												if (matrix[ox][oy] == OBJ_CHARGER)
+												a = victim;
+												b = a+1;
+											}
+											else
+											{
+												a = 0;
+												b = paintDlg.FieldParameters.rivals;
+											}
+											for (int j = a; j<b; j++)
+											{
+												if (paintDlg.robots[j]->x == destx && paintDlg.robots[j]->y == desty)	//ищем всех в данной координате
 												{
-													robots[actingRobot]->E += dE;
-													if (robots[actingRobot]->E > Emax)
-														robots[actingRobot]->E = Emax;
-												}
-												if (matrix[ox][oy] == OBJ_TECH)
-												{
-													robots[actingRobot]->P += dL;
-													if (robots[actingRobot]->P + robots[actingRobot]->A + robots[actingRobot]->V > Lmax)
-														robots[actingRobot]->P -= robots[actingRobot]->P + robots[actingRobot]->A + robots[actingRobot]->V - Lmax;
+													victim = j;
+													paintDlg.robots[actingRobot]->E -= paintDlg.FieldParameters.dEa;
+													paintDlg.robots[victim]->E -= paintDlg.FieldParameters.dEp;
+													srand(time(0));
+													double rnd = (rand() % 6 + 2)/10;
+													double A = rnd*paintDlg.robots[actingRobot]->A*paintDlg.robots[actingRobot]->E/paintDlg.FieldParameters.Emax;
+													double P = (1-rnd)*paintDlg.robots[victim]->P*paintDlg.robots[victim]->E/paintDlg.FieldParameters.Emax;
+													if (A > P)	//удачна€ атака
+													{
+														if (paintDlg.robots[victim]->P > 0)
+														{
+															paintDlg.robots[victim]->newP -= A-P;
+															paintDlg.robots[victim]->newL -= A-P;
+														}
+														else
+															paintDlg.robots[victim]->newE -= abs(P - A)*paintDlg.FieldParameters.Emax/paintDlg.FieldParameters.Lmax;
+														if (paintDlg.robots[victim]->newE <= 0)	//проверка убийства
+														{
+															//paintDlg.matrix[destx][desty] = -1;
+															//paintDlg.robots[victim] ->killed = true;
+															paintDlg.robots[actingRobot]->kills++;
+														}
+													}
+													else    //неудачна€ атака
+													{
+														if (paintDlg.robots[actingRobot]->A > 0)
+														{
+															paintDlg.robots[actingRobot]->newP -= P-A;
+															paintDlg.robots[actingRobot]->newL -= P-A;
+														}
+														else
+															paintDlg.robots[actingRobot]->newE -= abs(P - A)*paintDlg.FieldParameters.Emax/paintDlg.FieldParameters.Lmax;
+														if (paintDlg.robots[actingRobot]->newE <= 0)	//проверка убийства
+														{
+															//paintDlg.matrix[curx][cury] = -1;
+															//paintDlg.robots[actingRobot] ->killed = true;
+															paintDlg.robots[victim]->kills++;
+														}
+													}
 												}
 											}
 										}
 									}
+									break;
 								}
-								break;
-							}
-						case ACT_ATTACK:
-							{
-								if ( (sqrt(pow(Step->actions[i].dx,2) + pow(Step->actions[i].dy,2)) <= Rmax*robots[actingRobot]->V/Lmax*robots[actingRobot]->E/Emax)/* && (Step->actions[i].power <= robots[actingRobot]->A*robots[actingRobot]->E/Emax) */)
+							case ACT_TECH:
 								{
-									int destx = robots[actingRobot]->x + Step->actions[i].dx;
-									int desty = robots[actingRobot]->y + Step->actions[i].dy;
-									int victim = matrix[destx][desty];
-									if (victim != -1)
+									int Lcur = paintDlg.robots[actingRobot]->A + paintDlg.robots[actingRobot]->P + paintDlg.robots[actingRobot]->V;
+									int Ldes = Step->actions[i]->A + Step->actions[i]->P + Step->actions[i]->V;
+									if (Ldes <= Lcur)
 									{
-										robots[actingRobot]->E -= dEa;
-										robots[victim]->E -= dEp;
-										srand(time(0));
-										double rnd = (rand() % 6 + 2)/10;
-										double A = rnd*robots[actingRobot]->A*robots[actingRobot]->E/Emax;
-										double P = (1-rnd)*robots[victim]->P*robots[victim]->E/Emax;
-										if (A > P)	//удачна€ атака
-										{
-											if (robots[victim]->P > 0)
-												robots[victim]->P -= A-P;
-											else
-												robots[victim]->E -= abs(P - A)*Emax/Lmax;
-											if (robots[victim]->E <= 0)	//проверка убийства
-											{
-												matrix[destx][desty] = -1;
-												robots[victim] ->alive = false;
-												robots[actingRobot]->kills++;
-											}
-										}
-										else    //неудачна€ атака
-										{
-											if (robots[actingRobot]->A > 0)
-												robots[actingRobot]->P -= P-A;
-											else
-												robots[actingRobot]->E -= abs(P - A)*Emax/Lmax;
-											if (robots[actingRobot]->E <= 0)	//проверка убийства
-											{
-												matrix[curx][cury] = -1;
-												robots[actingRobot] ->alive = false;
-												robots[victim]->kills++;
-											}
-										}
+										paintDlg.robots[actingRobot]->A = Step->actions[i]->A;
+										paintDlg.robots[actingRobot]->P = Step->actions[i]->P;
+										paintDlg.robots[actingRobot]->V = Step->actions[i]->V;
 									}
+									break;
 								}
-								break;
 							}
-						case ACT_TECH:
-							{
-								int Lcur = robots[actingRobot]->A + robots[actingRobot]->P + robots[actingRobot]->V;
-								int Ldes = Step->actions[i].A + Step->actions[i].P + Step->actions[i].V;
-								if (Ldes <= Lcur)
-								{
-									robots[actingRobot]->A = Step->actions[i].A;
-									robots[actingRobot]->P = Step->actions[i].P;
-									robots[actingRobot]->V = Step->actions[i].V;
-								}
-								break;
-							}
+						}
 					}
 				}
+				/*for (int oi=-1; oi<=1; oi++)	//проверка наличи€ р€дом объектов
+				{
+					for (int oj=-1; oj<=1; oj++)
+					{
+						int ox = curx + oi;
+						int oy = cury + oj;
+						if (ox<0)
+							ox+=paintDlg.FieldParameters.fieldWidth;
+						else if (ox>=paintDlg.FieldParameters.fieldWidth)
+							ox-=paintDlg.FieldParameters.fieldWidth;
+						if (oy<0)
+							oy+=paintDlg.FieldParameters.fieldHeight;
+						else if (oy>=paintDlg.FieldParameters.fieldHeight)
+							oy-=paintDlg.FieldParameters.fieldHeight;*/
+						int curobj = paintDlg.matrix[curx][cury];
+						if (curobj == OBJ_CHARGER)
+						{
+							paintDlg.robots[actingRobot]->newE += paintDlg.FieldParameters.dE;
+							if (paintDlg.robots[actingRobot]->newE > paintDlg.FieldParameters.Emax)
+								paintDlg.robots[actingRobot]->newE = paintDlg.FieldParameters.Emax;
+						}
+						if (curobj == OBJ_TECH)
+						{
+							paintDlg.robots[actingRobot]->newL += paintDlg.FieldParameters.dL;
+							if (paintDlg.robots[actingRobot]->newL > paintDlg.FieldParameters.Lmax)
+								paintDlg.robots[actingRobot]->newL = paintDlg.FieldParameters.Lmax;
+							//if (paintDlg.robots[actingRobot]->P + paintDlg.robots[actingRobot]->A + paintDlg.robots[actingRobot]->V > Lmax)
+							//	paintDlg.robots[actingRobot]->P -= paintDlg.robots[actingRobot]->P + paintDlg.robots[actingRobot]->A + paintDlg.robots[actingRobot]->V - Lmax;
+						}
+						if (/*curobj != actingRobot && curobj >= 0 && !paintDlg.robots[curobj]->alive*/curobj == OBJ_DEAD)
+						{
+							for (int i=0; i<paintDlg.FieldParameters.rivals; i++)	//ищем труп, на котором стоим
+							{
+								if (paintDlg.robots[i]->x == curx && paintDlg.robots[i]->y == cury && !paintDlg.robots[i]->alive)
+								{
+									curobj = i;
+									break;
+								}
+							}
+							int curL;
+							if (paintDlg.robots[curobj]->L >= paintDlg.FieldParameters.dL)
+								curL = paintDlg.FieldParameters.dL;
+							else
+								curL = paintDlg.robots[curobj]->L;
+							if (paintDlg.robots[actingRobot]->L + curL > paintDlg.FieldParameters.Lmax)
+								curL = paintDlg.FieldParameters.Lmax - paintDlg.robots[actingRobot]->L;
+							paintDlg.robots[actingRobot]->newL += curL;
+							paintDlg.robots[curobj]->newL -= curL;
+						}
+					//}
+				//}
+
+
 			}
 		}
-		DrawRobots();
+		for (int i=0; i<paintDlg.FieldParameters.rivals; i++)	//обновл€ем параметры, выносим трупы
+		{
+			paintDlg.robots[i]->A = paintDlg.robots[i]->newA;
+			paintDlg.robots[i]->P = paintDlg.robots[i]->newP;
+			paintDlg.robots[i]->L = paintDlg.robots[i]->newL;
+			paintDlg.robots[i]->E = paintDlg.robots[i]->newE;
+			if (/*paintDlg.robots[i]->killed || */paintDlg.robots[i]->E<=0)
+			{
+				paintDlg.robots[i]->alive = false;
+				paintDlg.matrix[paintDlg.robots[i]->x][paintDlg.robots[i]->y] = OBJ_DEAD;
+				aliveRobots--;
+			}
+		}
+
+		if (infoLock != -1)
+		{
+			rx = paintDlg.robots[infoLock]->x;
+			ry = paintDlg.robots[infoLock]->y;
+			rE = paintDlg.robots[infoLock]->E;
+			rL = paintDlg.robots[infoLock]->L;
+			rA = paintDlg.robots[infoLock]->A;
+			rP = paintDlg.robots[infoLock]->P;
+			rV = paintDlg.robots[infoLock]->V;
+		}
+		UpdateData(FALSE);
+		UpdateWindow();
+
+		paintDlg.DrawRobots();
+		/*m_ListBox.DeleteString(0);
+		char buf[10];
+		itoa(paintDlg.robots[0]->E,buf,10);
+		m_ListBox.AddString(buf);*/
 		Sleep(100);
+		//AfxMessageBox("0000");
 	}
 }
 
 
 void CfieldDlg::OnBnClickedButton1()
 {
+	m_StartButton.EnableWindow(0);
+	m_ListBox.AddString("—вободна€ камера");
+
+	paintDlg.Create(IDD_DIALOG1,0);
+	paintDlg.ShowWindow(SW_SHOW);
 	srand(time(NULL));
 	int xrand = 0;
 	int yrand = 0;
-	for (int i = 0; i<Ne; i++)
+	for (int i = 0; i<paintDlg.FieldParameters.Ne; i++)
 	{
 		do
 		{
-		xrand = rand() % FieldParameters.fieldWidth;
-		yrand = rand() % FieldParameters.fieldHeight;
+			xrand = rand() % paintDlg.FieldParameters.fieldWidth;
+			yrand = rand() % paintDlg.FieldParameters.fieldHeight;
 		}
-		while (matrix[xrand][yrand] != -1);
-		matrix[xrand][yrand] = OBJ_CHARGER;
-		objects[i]->type = OBJ_CHARGER;
-		objects[i]->x = xrand;
-		objects[i]->y = yrand;
+		while (paintDlg.matrix[xrand][yrand] != -1);
+		paintDlg.matrix[xrand][yrand] = OBJ_CHARGER;
+		paintDlg.objects[i]->type = OBJ_CHARGER;
+		paintDlg.objects[i]->x = xrand;
+		paintDlg.objects[i]->y = yrand;
 	}
-	for (int i = Ne; i<Ne+Nl; i++)
+	for (int i = paintDlg.FieldParameters.Ne; i<paintDlg.FieldParameters.Ne+paintDlg.FieldParameters.Nl; i++)
 	{
 		do
 		{
-		xrand = rand() % FieldParameters.fieldWidth;
-		yrand = rand() % FieldParameters.fieldHeight;
+			xrand = rand() % paintDlg.FieldParameters.fieldWidth;
+			yrand = rand() % paintDlg.FieldParameters.fieldHeight;
 		}
-		while (matrix[xrand][yrand] != -1);
-		matrix[xrand][yrand] = OBJ_TECH;
-		objects[i]->type = OBJ_TECH;
-		objects[i]->x = xrand;
-		objects[i]->y = yrand;
+		while (paintDlg.matrix[xrand][yrand] != -1);
+		paintDlg.matrix[xrand][yrand] = OBJ_TECH;
+		paintDlg.objects[i]->type = OBJ_TECH;
+		paintDlg.objects[i]->x = xrand;
+		paintDlg.objects[i]->y = yrand;
 	}
-	for (int i=0; i<FieldParameters.rivals; i++)
+	for (int i=0; i<paintDlg.FieldParameters.rivals; i++)
 	{
 		do
 		{
-			xrand = rand() % FieldParameters.fieldWidth;
-			yrand = rand() % FieldParameters.fieldHeight;
+			xrand = rand() % paintDlg.FieldParameters.fieldWidth;
+			yrand = rand() % paintDlg.FieldParameters.fieldHeight;
 		}
-		while (matrix[xrand][yrand] != -1);
-		matrix[xrand][yrand] = i;
-		robots[i]->x = xrand;
-		robots[i]->y = yrand;
+		while (paintDlg.matrix[xrand][yrand] != -1);
+		paintDlg.matrix[xrand][yrand] = i;
+		paintDlg.robots[i]->x = xrand;
+		paintDlg.robots[i]->y = yrand;
+		m_ListBox.AddString(paintDlg.robots[i]->name);
 	}
-	DrawRobots();
+	//UpdateData(false);
+	UpdateWindow();
+	paintDlg.cameraLock = -1;
+	aliveRobots = paintDlg.FieldParameters.rivals;
+	stepNumber = 0;
+	paintDlg.DrawRobots();
+	//paintDlg.UpdateWindow();
 	Play();	
 }
 
@@ -376,40 +421,59 @@ void CfieldDlg::OnClose()
 	// TODO: добавьте свой код обработчика сообщений или вызов стандартного
 
 	CDialogEx::OnClose();
+	exit(0);
 }
 
 
 void CfieldDlg::OnBnClickedUpbtn()
 {
-	upperleftCellCoords[1] -= cameraStep;
-	if (upperleftCellCoords[1]<0)
-		upperleftCellCoords[1]+=FieldParameters.fieldHeight;
-	DrawRobots();
+	paintDlg.upperleftCellCoords[1] -= cameraStep;
+	if (paintDlg.upperleftCellCoords[1]<0)
+		paintDlg.upperleftCellCoords[1]+=paintDlg.FieldParameters.fieldHeight;
+	paintDlg.DrawRobots();
 }
 
 
 void CfieldDlg::OnBnClickedDownbtn()
 {
-	upperleftCellCoords[1] += cameraStep;
-	if (upperleftCellCoords[1]>=FieldParameters.fieldHeight)
-		upperleftCellCoords[1]-=FieldParameters.fieldHeight;
-	DrawRobots();
+	paintDlg.upperleftCellCoords[1] += cameraStep;
+	if (paintDlg.upperleftCellCoords[1]>=paintDlg.FieldParameters.fieldHeight)
+		paintDlg.upperleftCellCoords[1]-=paintDlg.FieldParameters.fieldHeight;
+	paintDlg.DrawRobots();
 }
 
 
 void CfieldDlg::OnBnClickedLeftbtn()
 {
-	upperleftCellCoords[0] -= cameraStep;
-	if (upperleftCellCoords[0]<0)
-		upperleftCellCoords[0]+=FieldParameters.fieldWidth;
-	DrawRobots();
+	paintDlg.upperleftCellCoords[0] -= cameraStep;
+	if (paintDlg.upperleftCellCoords[0]<0)
+		paintDlg.upperleftCellCoords[0]+=paintDlg.FieldParameters.fieldWidth;
+	paintDlg.DrawRobots();
 }
 
 
 void CfieldDlg::OnBnClickedRightbtn()
 {
-	upperleftCellCoords[0] += cameraStep;
-	if (upperleftCellCoords[0]>=FieldParameters.fieldWidth)
-		upperleftCellCoords[0]-=FieldParameters.fieldWidth;
-	DrawRobots();
+	paintDlg.upperleftCellCoords[0] += cameraStep;
+	if (paintDlg.upperleftCellCoords[0]>=paintDlg.FieldParameters.fieldWidth)
+		paintDlg.upperleftCellCoords[0]-=paintDlg.FieldParameters.fieldWidth;
+	paintDlg.DrawRobots();
+}
+
+
+void CfieldDlg::OnBnClickedButton2()
+{
+	paintDlg.cameraLock = m_ListBox.GetCurSel()-1;
+	paintDlg.DrawRobots();
+
+	//char buf[10];
+	//itoa(m_ListBox.GetCurSel(),buf,10);
+	//AfxMessageBox(buf );
+}
+
+
+void CfieldDlg::OnLbnSelchangeList1()
+{
+	infoLock = m_ListBox.GetCurSel()-1;
+	UpdateData(FALSE);
 }

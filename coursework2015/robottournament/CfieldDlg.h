@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Parameters.h"
+#include "PaintDlg.h"
+#include "afxwin.h"
 
 using namespace std;
 // диалоговое окно CfieldDlg
@@ -21,22 +23,12 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 public:
-	fieldData FieldParameters;
+	CPaintDlg paintDlg;
 	CString *Dlls;
-	CRect DrawArea;
-	int n;
-	int **matrix;
-	int upperleftCellCoords[2];
-	robot **robots;
-	object **objects;
-	void DrawRobot(int x, int y, /*int r, int g, int b*/ COLORREF color);
-	void DrawObject(int x, int y, int type);
-	void DrawRobots();
-	//UINT thread(LPVOID pParam);
 	int actingRobot;
-	//step *Step;
+	int aliveRobots;
 	void Play();
-	step *history;
+	step **history;
 	afx_msg void OnBnClickedOk();
 	afx_msg void OnPaint();
 	afx_msg void OnBnClickedButton1();
@@ -45,5 +37,18 @@ public:
 	afx_msg void OnBnClickedDownbtn();
 	afx_msg void OnBnClickedLeftbtn();
 	afx_msg void OnBnClickedRightbtn();
+	CListBox m_ListBox;
+	afx_msg void OnBnClickedButton2();
+	CButton m_StartButton;
+	int rx;
+	int ry;
+	int rE;
+	int rL;
+	int rA;
+	int rP;
+	int rV;
+	int stepNumber;
+	int infoLock;
+	afx_msg void OnLbnSelchangeList1();
 };
 
