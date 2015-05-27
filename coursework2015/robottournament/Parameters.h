@@ -29,6 +29,7 @@ struct action
 
 struct step
 {
+<<<<<<< HEAD
 	/*int numberOfActions;
 	//int *acts;
 	//int action;
@@ -43,6 +44,9 @@ struct step
 	int V;
 	step *nextAction;*/
 	action **actions;
+=======
+	vector<action> actions;
+>>>>>>> origin/master
 };
 
 struct object
@@ -121,6 +125,11 @@ struct toThread
 	step *Step;
 };
 
+<<<<<<< HEAD
+=======
+static HANDLE PicCounted = CreateEvent(NULL, FALSE, FALSE, "PicCounted");
+
+>>>>>>> origin/master
 #define ACT_MOVE   1
 #define ACT_ATTACK 2
 #define ACT_TECH   3
