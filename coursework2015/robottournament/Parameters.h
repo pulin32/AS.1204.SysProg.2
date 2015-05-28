@@ -1,22 +1,28 @@
 #pragma once
 
-/*#define N    1000
-#define T    100
-#define Emax 1000
-#define Lmax 100
-#define Vmax 30
-#define Rmax 5
-#define dL   10
-#define dEs  1
-#define dEv  2
-#define dEa  10
-#define dEp  5
-#define dE   100
-#define Ne   10
-#define Nl   10*/
-
 #define cameraStep 1
 #define fieldSide 20
+
+struct fieldData
+{
+	int fieldHeight;
+	int fieldWidth;
+	int rivals,
+	N,    //1000
+	T,    //100
+	Emax, //1000
+	Lmax, //100
+	Vmax, //30
+	Rmax, //5
+	dL,   //10
+	dEs,  //1
+	dEv,  //2
+	dEa,  //10
+	dEp,  //5
+	dE,   //100
+	Ne,   //10
+	Nl;   //10
+};
 
 struct action
 {
@@ -46,45 +52,17 @@ struct stepinfo
 	int yourNumber;
 	robot **robots;
 	object **objects;
-	/*int x;
-	int y;
-	int **matrix;
-	int A;
-	int P;
-	int V;
-	int E;*/
 	step **history;
+	fieldData *field;
 };
 
 typedef void (*robobrain)(stepinfo *Info, step *Step);
-
-struct fieldData
-{
-	int fieldHeight;
-	int fieldWidth;
-	int rivals,
-	N,    //1000
-	T,    //100
-	Emax, //1000
-	Lmax, //100
-	Vmax, //30
-	Rmax, //5
-	dL,   //10
-	dEs,  //1
-	dEv,  //2
-	dEa,  //10
-	dEp,  //5
-	dE,   //100
-	Ne,   //10
-	Nl;   //10
-};
 
 struct robot
 {
 	CString name;
 	COLORREF color;
 	robobrain DoStep;
-	//HINSTANCE Library;
 	int x;
 	int y;
 	int E;
@@ -98,7 +76,7 @@ struct robot
 	int newE;
 	int kills;
 	bool alive;
-	bool killed;
+	//bool killed;
 };
 
 struct toThread
@@ -117,7 +95,7 @@ struct toThread
 #define OBJ_DEAD -4
 #define SEVERAL -5
 
-struct coords
+/*struct coords
 {
 	int xlocal;
 	int ylocal;
@@ -126,8 +104,8 @@ struct coords
 	int *upperleftCellCoords;
 	int **matrix;
 	int n;
-	fieldData *Data;
-};
+	
+};*/
 
 
 inline void DoAction(step *Step, int type, int dx = 0, int dy = 0, int A = 0, int P = 0, int V = 0)

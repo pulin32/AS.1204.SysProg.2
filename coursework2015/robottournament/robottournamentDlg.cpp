@@ -53,7 +53,8 @@ CrobottournamentDlg::CrobottournamentDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(CrobottournamentDlg::IDD, pParent)
 	, fieldHeight(20)
 	, fieldWidth(20)
-	, PathToDllList(_T(""))
+	, PathToDllList(_T("list.txt"))
+	, robotsNumber(0)
 	, N(1000)
 	, T(100)
 	, Emax(1000)
@@ -239,18 +240,6 @@ void CrobottournamentDlg::OnBnClickedOk()
 			Field.paintDlg.objects[i] = new object;
 
 		LoadRobots();
-		//Field.matrix[10][3] = 100;		//TEST!!!!!!!!!!!!!!!!!!!!!!
-		/*Field.matrix[5][8] = 1;		//////////////
-		Field.matrix[25][10] = 1;		//////////////right
-		Field.matrix[30][8] = 1;		//////////////
-		Field.matrix[21][10] = 1;		//////////////
-		Field.matrix[10][21] = 1;		//////////////bottom
-		Field.matrix[15][30] = 1;		//////////////
-		Field.matrix[7][24] = 1;		//////////////
-		Field.matrix[999][5] = 1;		//////////////left
-		Field.matrix[995][8] = 1;		//////////////
-		Field.matrix[7][998] = 1;		//////////////up
-		Field.matrix[10][993] = 1;		//////////////    */
 
 		this->ShowWindow(SW_HIDE);
 		Field.DoModal();
@@ -262,7 +251,6 @@ void CrobottournamentDlg::OnBnClickedOk()
 void CrobottournamentDlg::OnBnClickedButtonLoaddll()
 {
 	UpdateData();
-	robotsNumber = 0;
 	CFileDialog fd(true);
 	if (fd.DoModal()==IDOK) 
 	{ 
@@ -318,7 +306,7 @@ void CrobottournamentDlg::LoadRobots()
 				name+=".dll";
 				//Field.robots[i]->Library = LoadLibrary(name);
 				hLib = LoadLibrary(name);
-				Field.paintDlg.robots[i]->killed = false;
+				//Field.paintDlg.robots[i]->killed = false;
 				Field.paintDlg.robots[i]->alive = true;
 				Field.paintDlg.robots[i]->kills = 0;
 				Field.paintDlg.robots[i]->E = Data.Emax;

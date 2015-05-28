@@ -110,6 +110,7 @@ void CfieldDlg::Play()
 		Stepinfo->robots = new robot*[paintDlg.FieldParameters.rivals];
 		Stepinfo->objects = new object*[paintDlg.FieldParameters.Ne+paintDlg.FieldParameters.Nl];
 		Stepinfo->history = new step*[paintDlg.FieldParameters.rivals];
+		Stepinfo->field = &paintDlg.FieldParameters;
 		for (int i=0; i<paintDlg.FieldParameters.rivals; i++)
 		{
 			Stepinfo->robots[i] = paintDlg.robots[i];
@@ -144,7 +145,6 @@ void CfieldDlg::Play()
 				int cury = paintDlg.robots[actingRobot]->y;
 				if (Step)
 				{
-					//for (int i = 0; i<Step->numberOfActions; i++)
 					for (int i = 0; i<3; i++)
 					{
 						if (Step->actions[i])
@@ -262,20 +262,6 @@ void CfieldDlg::Play()
 						}
 					}
 				}
-				/*for (int oi=-1; oi<=1; oi++)	//проверка наличия рядом объектов
-				{
-					for (int oj=-1; oj<=1; oj++)
-					{
-						int ox = curx + oi;
-						int oy = cury + oj;
-						if (ox<0)
-							ox+=paintDlg.FieldParameters.fieldWidth;
-						else if (ox>=paintDlg.FieldParameters.fieldWidth)
-							ox-=paintDlg.FieldParameters.fieldWidth;
-						if (oy<0)
-							oy+=paintDlg.FieldParameters.fieldHeight;
-						else if (oy>=paintDlg.FieldParameters.fieldHeight)
-							oy-=paintDlg.FieldParameters.fieldHeight;*/
 						int curobj = paintDlg.matrix[curx][cury];
 						if (curobj == OBJ_CHARGER)
 						{
@@ -288,8 +274,6 @@ void CfieldDlg::Play()
 							paintDlg.robots[actingRobot]->newL += paintDlg.FieldParameters.dL;
 							if (paintDlg.robots[actingRobot]->newL > paintDlg.FieldParameters.Lmax)
 								paintDlg.robots[actingRobot]->newL = paintDlg.FieldParameters.Lmax;
-							//if (paintDlg.robots[actingRobot]->P + paintDlg.robots[actingRobot]->A + paintDlg.robots[actingRobot]->V > Lmax)
-							//	paintDlg.robots[actingRobot]->P -= paintDlg.robots[actingRobot]->P + paintDlg.robots[actingRobot]->A + paintDlg.robots[actingRobot]->V - Lmax;
 						}
 						if (/*curobj != actingRobot && curobj >= 0 && !paintDlg.robots[curobj]->alive*/curobj == OBJ_DEAD)
 						{
@@ -345,12 +329,8 @@ void CfieldDlg::Play()
 		UpdateWindow();
 
 		paintDlg.DrawRobots();
-		/*m_ListBox.DeleteString(0);
-		char buf[10];
-		itoa(paintDlg.robots[0]->E,buf,10);
-		m_ListBox.AddString(buf);*/
+
 		Sleep(100);
-		//AfxMessageBox("0000");
 	}
 }
 
