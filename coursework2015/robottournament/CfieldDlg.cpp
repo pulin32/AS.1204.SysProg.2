@@ -112,7 +112,6 @@ void CfieldDlg::Play()
 		Stepinfo->history = new step*[paintDlg.FieldParameters.rivals];
 		for (int i=0; i<paintDlg.FieldParameters.rivals; i++)
 		{
-<<<<<<< HEAD
 			Stepinfo->robots[i] = paintDlg.robots[i];
 			Stepinfo->history[i] = history[i];
 		}
@@ -126,7 +125,6 @@ void CfieldDlg::Play()
 				toThread *threadData = new toThread;
 				step *Step = new step;
 				//Step->nextAction = NULL;
-				Step->actions = new action*[3];
 				for (int i = 0; i<3; i++)
 					Step->actions[i] = NULL;
 
@@ -148,70 +146,14 @@ void CfieldDlg::Play()
 				{
 					//for (int i = 0; i<Step->numberOfActions; i++)
 					for (int i = 0; i<3; i++)
-=======
-			//Step = NULL;
-			//actingRobot = i;
-			toThread *threadData = new toThread;
-			step *Step = new step;
-			stepinfo *Stepinfo = new stepinfo;
-			/*Stepinfo->A = robots[actingRobot]->A;
-			Stepinfo->P = robots[actingRobot]->P;
-			Stepinfo->V = robots[actingRobot]->V;
-			Stepinfo->E = robots[actingRobot]->E;
-			Stepinfo->x = robots[actingRobot]->x;
-			Stepinfo->y = robots[actingRobot]->y;*/
-			Stepinfo->robots = new robot*[FieldParameters.rivals];
-			Stepinfo->objects = new object*[Ne+Nl];
-			for (int i=0; i<FieldParameters.rivals; i++)
-				Stepinfo->robots[i] = robots[i];
-			for (int i=0; i<Ne+Nl; i++)
-				Stepinfo->objects[i] = objects[i];
-
-			Stepinfo->history = history;
-			threadData->Function = robots[actingRobot]->DoStep;
-			threadData->Info = Stepinfo;
-			threadData->Step = Step;
-			CWinThread* pThread = AfxBeginThread(thread, threadData);
-			auto result = WaitForSingleObject(pThread->m_hThread, T);
-			if (result != WAIT_OBJECT_0)
-			{
-				TerminateThread(pThread->m_hThread, 0);
-				delete Step;
-				continue;
-			}
-			history[actingRobot] = *Step;
-			if (Step)
-			{
-				int curx = robots[actingRobot]->x;
-				int cury = robots[actingRobot]->y;
-				for (auto& action: Step->actions)
-				{
-					switch (action.act)
->>>>>>> origin/master
 					{
 						if (Step->actions[i])
 						{
 							switch (i)
 							{
-<<<<<<< HEAD
 							case ACT_MOVE:
 								{
 									if (sqrt(pow(Step->actions[i]->dx,2) + pow(Step->actions[i]->dy,2)) <= paintDlg.FieldParameters.Vmax*paintDlg.robots[actingRobot]->V/paintDlg.FieldParameters.Lmax*paintDlg.robots[actingRobot]->E/paintDlg.FieldParameters.Emax)
-=======
-								if (sqrt(pow(action.dx, 2) + pow(action.dy, 2)) <= Vmax*robots[actingRobot]->V / Lmax*robots[actingRobot]->E / Emax)
-								{
-									int newx = curx + action.dx;
-									int newy = cury + action.dy;
-									if (newx<0)
-										newx+=FieldParameters.fieldWidth;
-									else if (newx>=FieldParameters.fieldWidth)
-										newx-=FieldParameters.fieldWidth;
-									if (newy<0)
-										newy+=FieldParameters.fieldHeight;
-									else if (newy>=FieldParameters.fieldHeight)
-										newy-=FieldParameters.fieldHeight;
-									if (matrix[newx][newy] == -1)
->>>>>>> origin/master
 									{
 										int newx = curx+Step->actions[i]->dx;
 										int newy = cury+Step->actions[i]->dy;
@@ -235,22 +177,9 @@ void CfieldDlg::Play()
 									}
 									break;
 								}
-<<<<<<< HEAD
 							case ACT_ATTACK:
 								{
 									if ( (sqrt(pow(Step->actions[i]->dx,2) + pow(Step->actions[i]->dy,2)) <= paintDlg.FieldParameters.Rmax*paintDlg.robots[actingRobot]->V/paintDlg.FieldParameters.Lmax*paintDlg.robots[actingRobot]->E/paintDlg.FieldParameters.Emax)/* && (Step->actions[i].power <= robots[actingRobot]->A*robots[actingRobot]->E/Emax) */)
-=======
-								break;
-							}
-						case ACT_ATTACK:
-							{
-								if ((sqrt(pow(action.dx, 2) + pow(action.dy, 2)) <= Rmax*robots[actingRobot]->V / Lmax*robots[actingRobot]->E / Emax)/* && (Step->actions[i].power <= robots[actingRobot]->A*robots[actingRobot]->E/Emax) */)
-								{
-									int destx = robots[actingRobot]->x + action.dx;
-									int desty = robots[actingRobot]->y + action.dy;
-									int victim = matrix[destx][desty];
-									if (victim != -1)
->>>>>>> origin/master
 									{
 										int destx = paintDlg.robots[actingRobot]->x + Step->actions[i]->dx;
 										int desty = paintDlg.robots[actingRobot]->y + Step->actions[i]->dy;
@@ -317,7 +246,6 @@ void CfieldDlg::Play()
 									}
 									break;
 								}
-<<<<<<< HEAD
 							case ACT_TECH:
 								{
 									int Lcur = paintDlg.robots[actingRobot]->A + paintDlg.robots[actingRobot]->P + paintDlg.robots[actingRobot]->V;
@@ -329,19 +257,6 @@ void CfieldDlg::Play()
 										paintDlg.robots[actingRobot]->V = Step->actions[i]->V;
 									}
 									break;
-=======
-								break;
-							}
-						case ACT_TECH:
-							{
-								int Lcur = robots[actingRobot]->A + robots[actingRobot]->P + robots[actingRobot]->V;
-								int Ldes = action.A + action.P + action.V;
-								if (Ldes <= Lcur)
-								{
-									robots[actingRobot]->A = action.A;
-									robots[actingRobot]->P = action.P;
-									robots[actingRobot]->V = action.V;
->>>>>>> origin/master
 								}
 							}
 						}

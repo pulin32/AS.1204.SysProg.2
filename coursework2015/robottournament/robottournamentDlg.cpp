@@ -197,12 +197,8 @@ void CrobottournamentDlg::OnBnClickedOk()
 	
 	//data *Data = new data;
 	UpdateData();
-<<<<<<< HEAD
-	if (fieldHeight < fieldSide || fieldWidth < fieldSide)
-=======
 	CountRobots();
-	if (fieldHeight < 20 || fieldWidth < 20)
->>>>>>> origin/master
+	if (fieldHeight < fieldSide || fieldWidth < fieldSide)
 		AfxMessageBox("Поле слишком маленькое");
 	else if (robotsNumber == 0)
 		AfxMessageBox("Роботы не загружены");

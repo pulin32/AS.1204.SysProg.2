@@ -29,24 +29,7 @@ struct action
 
 struct step
 {
-<<<<<<< HEAD
-	/*int numberOfActions;
-	//int *acts;
-	//int action;
-	//int dx;
-	//int dy;
-	action *actions;*/
-	/*int act;
-	int dx;
-	int dy;
-	int A;
-	int P;
-	int V;
-	step *nextAction;*/
-	action **actions;
-=======
-	vector<action> actions;
->>>>>>> origin/master
+	action* actions[3];
 };
 
 struct object
@@ -125,14 +108,9 @@ struct toThread
 	step *Step;
 };
 
-<<<<<<< HEAD
-=======
-static HANDLE PicCounted = CreateEvent(NULL, FALSE, FALSE, "PicCounted");
-
->>>>>>> origin/master
-#define ACT_MOVE   1
-#define ACT_ATTACK 2
-#define ACT_TECH   3
+#define ACT_MOVE   0
+#define ACT_ATTACK 1
+#define ACT_TECH   2
 
 #define OBJ_CHARGER -2
 #define OBJ_TECH -3
@@ -152,8 +130,10 @@ struct coords
 };
 
 
-void DoAction(step *Step, int type, int dx = 0, int dy = 0, int A = 0, int P = 0, int V = 0)
+inline void DoAction(step *Step, int type, int dx = 0, int dy = 0, int A = 0, int P = 0, int V = 0)
 {
+	if (Step->actions[type])
+		delete Step->actions[type];
 	Step->actions[type] = new action;
 	Step->actions[type]->dx = dx;
 	Step->actions[type]->dy = dy;
