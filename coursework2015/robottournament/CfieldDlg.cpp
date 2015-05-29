@@ -81,6 +81,7 @@ END_MESSAGE_MAP()
 void CfieldDlg::OnBnClickedOk()
 {
 	// TODO: добавьте свой код обработчика уведомлений
+	AfxGetMainWnd()->DestroyWindow();
 	CDialogEx::OnOK();
 }
 
@@ -138,7 +139,16 @@ void CfieldDlg::Play()
 					TerminateThread(hThread, NULL);
 					break;
 				}
-				delete history[actingRobot];	//очистка истории
+
+				if (history[actingRobot])	//очистка истории
+				{
+					for (int i = 0; i<3; i++)	//
+					{
+						if (history[actingRobot]->actions[i])
+							delete history[actingRobot]->actions[i];
+					}
+					delete history[actingRobot];	
+				}
 
 				history[actingRobot] = Step;
 				int curx = paintDlg.robots[actingRobot]->x;
@@ -202,8 +212,8 @@ void CfieldDlg::Play()
 												if (paintDlg.robots[j]->x == destx && paintDlg.robots[j]->y == desty)	//ищем всех в данной координате
 												{
 													victim = j;
-													paintDlg.robots[actingRobot]->E -= paintDlg.FieldParameters.dEa;
-													paintDlg.robots[victim]->E -= paintDlg.FieldParameters.dEp;
+													paintDlg.robots[actingRobot]->newE -= paintDlg.FieldParameters.dEa;
+													paintDlg.robots[victim]->newE -= paintDlg.FieldParameters.dEp;
 													srand(time(0));
 													double rnd = (rand() % 6 + 2)/10;
 													double A = rnd*paintDlg.robots[actingRobot]->A*paintDlg.robots[actingRobot]->E/paintDlg.FieldParameters.Emax;
@@ -303,6 +313,8 @@ void CfieldDlg::Play()
 		}
 		for (int i=0; i<paintDlg.FieldParameters.rivals; i++)	//обновляем параметры, выносим трупы
 		{
+			if (paintDlg.robots[i]->E == paintDlg.robots[i]->newE)
+				paintDlg.robots[i]->newE -= paintDlg.FieldParameters.dEs;
 			paintDlg.robots[i]->A = paintDlg.robots[i]->newA;
 			paintDlg.robots[i]->P = paintDlg.robots[i]->newP;
 			paintDlg.robots[i]->L = paintDlg.robots[i]->newL;
@@ -329,6 +341,10 @@ void CfieldDlg::Play()
 		UpdateWindow();
 
 		paintDlg.DrawRobots();
+		delete Stepinfo->robots;
+		delete Stepinfo->objects;
+		delete Stepinfo->history;
+		delete Stepinfo;
 
 		Sleep(100);
 	}
@@ -444,15 +460,21 @@ void CfieldDlg::OnBnClickedButton2()
 {
 	paintDlg.cameraLock = m_ListBox.GetCurSel()-1;
 	paintDlg.DrawRobots();
-
-	//char buf[10];
-	//itoa(m_ListBox.GetCurSel(),buf,10);
-	//AfxMessageBox(buf );
 }
 
 
 void CfieldDlg::OnLbnSelchangeList1()
 {
 	infoLock = m_ListBox.GetCurSel()-1;
+	if (infoLock != -1)
+		{
+			rx = paintDlg.robots[infoLock]->x;
+			ry = paintDlg.robots[infoLock]->y;
+			rE = paintDlg.robots[infoLock]->E;
+			rL = paintDlg.robots[infoLock]->L;
+			rA = paintDlg.robots[infoLock]->A;
+			rP = paintDlg.robots[infoLock]->P;
+			rV = paintDlg.robots[infoLock]->V;
+		}
 	UpdateData(FALSE);
 }
