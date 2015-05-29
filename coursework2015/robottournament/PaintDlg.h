@@ -22,6 +22,7 @@ public:
 	fieldData FieldParameters;
 	CRect DrawArea;
 	COLORREF Black;
+	COLORREF White;
 	COLORREF Green;
 	CPen GridPen;
 	CPen MapPen1;

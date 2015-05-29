@@ -20,6 +20,7 @@ CPaintDlg::CPaintDlg(CWnd* pParent /*=NULL*/)
 	n = fieldSide;
 
 	Black = RGB(0,0,0);
+	White = RGB(255,255,255);
 	Green = RGB(0,200,0);
 	GridPen.CreatePen(PS_SOLID,1,Black);
 	MapPen1.CreatePen(PS_SOLID,3,Black);
@@ -171,7 +172,9 @@ void CPaintDlg::DrawRobots()
 			if (matrix[xreal][yreal] > -1)
 				DrawRobot(xlocal,ylocal,robots[matrix[xreal][yreal]]->color);
 			else if (matrix[xreal][yreal] == SEVERAL)
-				DrawRobot(xlocal,ylocal,RGB(0,0,0));
+				DrawRobot(xlocal,ylocal,Black);
+			else if (matrix[xreal][yreal] == OBJ_DEAD)
+				DrawRobot(xlocal,ylocal,White);
 			else if (matrix[xreal][yreal] < -1)
 				DrawObject(xlocal,ylocal,matrix[xreal][yreal]);
 			ylocal++;

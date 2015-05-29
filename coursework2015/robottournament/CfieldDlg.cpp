@@ -155,6 +155,13 @@ void CfieldDlg::Play()
 				int cury = paintDlg.robots[actingRobot]->y;
 				if (Step)
 				{
+					if (paintDlg.matrix[curx][cury] != actingRobot)
+					{
+						if (paintDlg.matrix[curx][cury] >= 0)
+							paintDlg.matrix[curx][cury] = SEVERAL;
+						else
+							paintDlg.matrix[curx][cury] = actingRobot;
+					}
 					for (int i = 0; i<3; i++)
 					{
 						if (Step->actions[i])
@@ -175,7 +182,7 @@ void CfieldDlg::Play()
 											newy+=paintDlg.FieldParameters.fieldHeight;
 										else if (newy>=paintDlg.FieldParameters.fieldHeight)
 											newy-=paintDlg.FieldParameters.fieldHeight;
-										if (paintDlg.matrix[curx][cury] == actingRobot)
+										//if (paintDlg.matrix[curx][cury] == actingRobot)
 											paintDlg.matrix[curx][cury] = -1;
 										paintDlg.robots[actingRobot]->x = newx;
 										paintDlg.robots[actingRobot]->y = newy;
@@ -220,7 +227,7 @@ void CfieldDlg::Play()
 													double P = (1-rnd)*paintDlg.robots[victim]->P*paintDlg.robots[victim]->E/paintDlg.FieldParameters.Emax;
 													if (A > P)	//удачная атака
 													{
-														if (paintDlg.robots[victim]->P > 0)
+														if (paintDlg.robots[victim]->newP > 0)
 														{
 															paintDlg.robots[victim]->newP -= A-P;
 															paintDlg.robots[victim]->newL -= A-P;
@@ -236,7 +243,7 @@ void CfieldDlg::Play()
 													}
 													else    //неудачная атака
 													{
-														if (paintDlg.robots[actingRobot]->A > 0)
+														if (paintDlg.robots[actingRobot]->newA > 0)
 														{
 															paintDlg.robots[actingRobot]->newP -= P-A;
 															paintDlg.robots[actingRobot]->newL -= P-A;
@@ -315,6 +322,16 @@ void CfieldDlg::Play()
 		{
 			if (paintDlg.robots[i]->E == paintDlg.robots[i]->newE)
 				paintDlg.robots[i]->newE -= paintDlg.FieldParameters.dEs;
+			if (paintDlg.robots[i]->newA < 0)
+			{
+				paintDlg.robots[i]->newL -= paintDlg.robots[i]->newA;
+				paintDlg.robots[i]->newA = 0;
+			}
+			if (paintDlg.robots[i]->newP < 0)
+			{
+				paintDlg.robots[i]->newL -= paintDlg.robots[i]->newP;
+				paintDlg.robots[i]->newP = 0;
+			}
 			paintDlg.robots[i]->A = paintDlg.robots[i]->newA;
 			paintDlg.robots[i]->P = paintDlg.robots[i]->newP;
 			paintDlg.robots[i]->L = paintDlg.robots[i]->newL;

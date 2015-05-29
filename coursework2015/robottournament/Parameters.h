@@ -112,6 +112,8 @@ inline void DoAction(step *Step, int type, int dx = 0, int dy = 0, int A = 0, in
 {
 	if (Step->actions[type])
 		delete Step->actions[type];
+	if (type == ACT_MOVE && !dx && !dy)
+		return;
 	Step->actions[type] = new action;
 	Step->actions[type]->dx = dx;
 	Step->actions[type]->dy = dy;
