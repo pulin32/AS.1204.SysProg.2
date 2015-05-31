@@ -306,7 +306,7 @@ void CrobottournamentDlg::LoadRobots()
 				name+=".dll";
 				//Field.robots[i]->Library = LoadLibrary(name);
 				hLib = LoadLibrary(name);
-				//Field.paintDlg.robots[i]->killed = false;
+				Field.paintDlg.robots[i]->killed = false;
 				Field.paintDlg.robots[i]->alive = true;
 				Field.paintDlg.robots[i]->kills = 0;
 				Field.paintDlg.robots[i]->E = Data.Emax;

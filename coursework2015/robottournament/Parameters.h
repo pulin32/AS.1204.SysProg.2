@@ -76,7 +76,7 @@ struct robot
 	int newE;
 	int kills;
 	bool alive;
-	//bool killed;
+	bool killed;
 };
 
 struct toThread

@@ -159,7 +159,7 @@ void CfieldDlg::Play()
 					{
 						if (paintDlg.matrix[curx][cury] >= 0)
 							paintDlg.matrix[curx][cury] = SEVERAL;
-						else
+						else if (paintDlg.matrix[curx][cury] == -1)
 							paintDlg.matrix[curx][cury] = actingRobot;
 					}
 					for (int i = 0; i<3; i++)
@@ -170,7 +170,7 @@ void CfieldDlg::Play()
 							{
 							case ACT_MOVE:
 								{
-									if (sqrt(pow(Step->actions[i]->dx,2) + pow(Step->actions[i]->dy,2)) <= paintDlg.FieldParameters.Vmax*paintDlg.robots[actingRobot]->V/paintDlg.FieldParameters.Lmax*paintDlg.robots[actingRobot]->E/paintDlg.FieldParameters.Emax)
+									if (sqrt(pow(Step->actions[i]->dx,2) + pow(Step->actions[i]->dy,2)) <= (double)paintDlg.FieldParameters.Vmax*(double)paintDlg.robots[actingRobot]->V/(double)paintDlg.FieldParameters.Lmax*(double)paintDlg.robots[actingRobot]->E/(double)paintDlg.FieldParameters.Emax)
 									{
 										int newx = curx+Step->actions[i]->dx;
 										int newy = cury+Step->actions[i]->dy;
@@ -182,7 +182,7 @@ void CfieldDlg::Play()
 											newy+=paintDlg.FieldParameters.fieldHeight;
 										else if (newy>=paintDlg.FieldParameters.fieldHeight)
 											newy-=paintDlg.FieldParameters.fieldHeight;
-										//if (paintDlg.matrix[curx][cury] == actingRobot)
+										if (paintDlg.matrix[curx][cury] == actingRobot || paintDlg.matrix[curx][cury] == SEVERAL)
 											paintDlg.matrix[curx][cury] = -1;
 										paintDlg.robots[actingRobot]->x = newx;
 										paintDlg.robots[actingRobot]->y = newy;
@@ -222,7 +222,7 @@ void CfieldDlg::Play()
 													paintDlg.robots[actingRobot]->newE -= paintDlg.FieldParameters.dEa;
 													paintDlg.robots[victim]->newE -= paintDlg.FieldParameters.dEp;
 													srand(time(0));
-													double rnd = (rand() % 6 + 2)/10;
+													double rnd = (rand() % 60 + 20)/100;
 													double A = rnd*paintDlg.robots[actingRobot]->A*paintDlg.robots[actingRobot]->E/paintDlg.FieldParameters.Emax;
 													double P = (1-rnd)*paintDlg.robots[victim]->P*paintDlg.robots[victim]->E/paintDlg.FieldParameters.Emax;
 													if (A > P)	//удачная атака
@@ -234,12 +234,7 @@ void CfieldDlg::Play()
 														}
 														else
 															paintDlg.robots[victim]->newE -= abs(P - A)*paintDlg.FieldParameters.Emax/paintDlg.FieldParameters.Lmax;
-														if (paintDlg.robots[victim]->newE <= 0)	//проверка убийства
-														{
-															//paintDlg.matrix[destx][desty] = -1;
-															//paintDlg.robots[victim] ->killed = true;
-															paintDlg.robots[actingRobot]->kills++;
-														}
+
 													}
 													else    //неудачная атака
 													{
@@ -250,12 +245,18 @@ void CfieldDlg::Play()
 														}
 														else
 															paintDlg.robots[actingRobot]->newE -= abs(P - A)*paintDlg.FieldParameters.Emax/paintDlg.FieldParameters.Lmax;
-														if (paintDlg.robots[actingRobot]->newE <= 0)	//проверка убийства
-														{
-															//paintDlg.matrix[curx][cury] = -1;
-															//paintDlg.robots[actingRobot] ->killed = true;
-															paintDlg.robots[victim]->kills++;
-														}
+													}
+													if (paintDlg.robots[victim]->newE <= 0)	//проверка убийства
+													{
+														//paintDlg.matrix[destx][desty] = -1;
+														paintDlg.robots[victim] ->killed = true;
+														paintDlg.robots[actingRobot]->kills++;
+													}
+													if (paintDlg.robots[actingRobot]->newE <= 0)	//проверка убийства
+													{
+														//paintDlg.matrix[curx][cury] = -1;
+														paintDlg.robots[actingRobot] ->killed = true;
+														paintDlg.robots[victim]->kills++;
 													}
 												}
 											}
@@ -279,40 +280,40 @@ void CfieldDlg::Play()
 						}
 					}
 				}
-						int curobj = paintDlg.matrix[curx][cury];
-						if (curobj == OBJ_CHARGER)
+				int curobj = paintDlg.matrix[curx][cury];
+				if (curobj == OBJ_CHARGER)
+				{
+					paintDlg.robots[actingRobot]->newE += paintDlg.FieldParameters.dE;
+					if (paintDlg.robots[actingRobot]->newE > paintDlg.FieldParameters.Emax)
+						paintDlg.robots[actingRobot]->newE = paintDlg.FieldParameters.Emax;
+				}
+				if (curobj == OBJ_TECH)
+				{
+					paintDlg.robots[actingRobot]->newL += paintDlg.FieldParameters.dL;
+					if (paintDlg.robots[actingRobot]->newL > paintDlg.FieldParameters.Lmax)
+						paintDlg.robots[actingRobot]->newL = paintDlg.FieldParameters.Lmax;
+				}
+				if (/*curobj != actingRobot && curobj >= 0 && !paintDlg.robots[curobj]->alive*/curobj == OBJ_DEAD)
+				{
+					for (int i=0; i<paintDlg.FieldParameters.rivals; i++)	//ищем труп, на котором стоим
+					{
+						if (paintDlg.robots[i]->x == curx && paintDlg.robots[i]->y == cury && !paintDlg.robots[i]->alive)
 						{
-							paintDlg.robots[actingRobot]->newE += paintDlg.FieldParameters.dE;
-							if (paintDlg.robots[actingRobot]->newE > paintDlg.FieldParameters.Emax)
-								paintDlg.robots[actingRobot]->newE = paintDlg.FieldParameters.Emax;
+							curobj = i;
+							break;
 						}
-						if (curobj == OBJ_TECH)
-						{
-							paintDlg.robots[actingRobot]->newL += paintDlg.FieldParameters.dL;
-							if (paintDlg.robots[actingRobot]->newL > paintDlg.FieldParameters.Lmax)
-								paintDlg.robots[actingRobot]->newL = paintDlg.FieldParameters.Lmax;
-						}
-						if (/*curobj != actingRobot && curobj >= 0 && !paintDlg.robots[curobj]->alive*/curobj == OBJ_DEAD)
-						{
-							for (int i=0; i<paintDlg.FieldParameters.rivals; i++)	//ищем труп, на котором стоим
-							{
-								if (paintDlg.robots[i]->x == curx && paintDlg.robots[i]->y == cury && !paintDlg.robots[i]->alive)
-								{
-									curobj = i;
-									break;
-								}
-							}
-							int curL;
-							if (paintDlg.robots[curobj]->L >= paintDlg.FieldParameters.dL)
-								curL = paintDlg.FieldParameters.dL;
-							else
-								curL = paintDlg.robots[curobj]->L;
-							if (paintDlg.robots[actingRobot]->L + curL > paintDlg.FieldParameters.Lmax)
-								curL = paintDlg.FieldParameters.Lmax - paintDlg.robots[actingRobot]->L;
-							paintDlg.robots[actingRobot]->newL += curL;
-							paintDlg.robots[curobj]->newL -= curL;
-						}
-					//}
+					}
+					int curL;
+					if (paintDlg.robots[curobj]->L >= paintDlg.FieldParameters.dL)
+						curL = paintDlg.FieldParameters.dL;
+					else
+						curL = paintDlg.robots[curobj]->L;
+					if (paintDlg.robots[actingRobot]->L + curL > paintDlg.FieldParameters.Lmax)
+						curL = paintDlg.FieldParameters.Lmax - paintDlg.robots[actingRobot]->L;
+					paintDlg.robots[actingRobot]->newL += curL;
+					paintDlg.robots[curobj]->newL -= curL;
+				}
+				//}
 				//}
 
 
@@ -336,7 +337,7 @@ void CfieldDlg::Play()
 			paintDlg.robots[i]->P = paintDlg.robots[i]->newP;
 			paintDlg.robots[i]->L = paintDlg.robots[i]->newL;
 			paintDlg.robots[i]->E = paintDlg.robots[i]->newE;
-			if (/*paintDlg.robots[i]->killed || */paintDlg.robots[i]->E<=0)
+			if (paintDlg.robots[i]->killed || paintDlg.robots[i]->E<=0)
 			{
 				paintDlg.robots[i]->alive = false;
 				paintDlg.matrix[paintDlg.robots[i]->x][paintDlg.robots[i]->y] = OBJ_DEAD;
@@ -484,14 +485,14 @@ void CfieldDlg::OnLbnSelchangeList1()
 {
 	infoLock = m_ListBox.GetCurSel()-1;
 	if (infoLock != -1)
-		{
-			rx = paintDlg.robots[infoLock]->x;
-			ry = paintDlg.robots[infoLock]->y;
-			rE = paintDlg.robots[infoLock]->E;
-			rL = paintDlg.robots[infoLock]->L;
-			rA = paintDlg.robots[infoLock]->A;
-			rP = paintDlg.robots[infoLock]->P;
-			rV = paintDlg.robots[infoLock]->V;
-		}
+	{
+		rx = paintDlg.robots[infoLock]->x;
+		ry = paintDlg.robots[infoLock]->y;
+		rE = paintDlg.robots[infoLock]->E;
+		rL = paintDlg.robots[infoLock]->L;
+		rA = paintDlg.robots[infoLock]->A;
+		rP = paintDlg.robots[infoLock]->P;
+		rV = paintDlg.robots[infoLock]->V;
+	}
 	UpdateData(FALSE);
 }
