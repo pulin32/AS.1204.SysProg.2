@@ -45,12 +45,25 @@ struct object
 	int y;
 };
 
-struct robot;
+struct robotinfo
+{
+	CString name;
+	int x;
+	int y;
+	int E;
+	int L;
+	int V;
+	int A;
+	int P;
+	int kills;
+	bool alive;
+};
+
 struct stepinfo
 {
 	int stepnum;
 	int yourNumber;
-	robot **robots;
+	robotinfo **robots;
 	object **objects;
 	step **history;
 	fieldData *field;
@@ -70,6 +83,8 @@ struct robot
 	int V;
 	int A;
 	int P;
+	int newx;
+	int newy;
 	int newA;
 	int newP;
 	int newL;

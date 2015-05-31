@@ -108,25 +108,40 @@ void CfieldDlg::Play()
 		stepNumber++;
 		stepinfo *Stepinfo = new stepinfo;
 		Stepinfo->stepnum = stepNumber;
-		Stepinfo->robots = new robot*[paintDlg.FieldParameters.rivals];
+		Stepinfo->robots = new robotinfo*[paintDlg.FieldParameters.rivals];
 		Stepinfo->objects = new object*[paintDlg.FieldParameters.Ne+paintDlg.FieldParameters.Nl];
 		Stepinfo->history = new step*[paintDlg.FieldParameters.rivals];
-		Stepinfo->field = &paintDlg.FieldParameters;
-		for (int i=0; i<paintDlg.FieldParameters.rivals; i++)
+		Stepinfo->field = new fieldData;
+		memcpy(Stepinfo->field, &paintDlg.FieldParameters, sizeof(fieldData));	//инфо о поле
+		for (int i=0; i<paintDlg.FieldParameters.rivals; i++)	//инфо о роботах
 		{
-			Stepinfo->robots[i] = paintDlg.robots[i];
+			Stepinfo->robots[i] = new robotinfo;
+			Stepinfo->robots[i]->name = paintDlg.robots[i]->name;
+			Stepinfo->robots[i]->x = paintDlg.robots[i]->x;
+			Stepinfo->robots[i]->y = paintDlg.robots[i]->y;
+			Stepinfo->robots[i]->A = paintDlg.robots[i]->A;
+			Stepinfo->robots[i]->P = paintDlg.robots[i]->P;
+			Stepinfo->robots[i]->V = paintDlg.robots[i]->V;
+			Stepinfo->robots[i]->L = paintDlg.robots[i]->L;
+			Stepinfo->robots[i]->E = paintDlg.robots[i]->E;
+			Stepinfo->robots[i]->alive = paintDlg.robots[i]->alive;
+			Stepinfo->robots[i]->kills = paintDlg.robots[i]->kills;
+
 			Stepinfo->history[i] = history[i];
 		}
-		for (int i=0; i<paintDlg.FieldParameters.Ne+paintDlg.FieldParameters.Nl; i++)
-			Stepinfo->objects[i] = paintDlg.objects[i];
-		for (int actingRobot=0; actingRobot<paintDlg.FieldParameters.rivals; actingRobot++)
+		for (int i=0; i<paintDlg.FieldParameters.Ne+paintDlg.FieldParameters.Nl; i++)	//инфо об объектах
+		{
+			Stepinfo->objects[i] = new object;
+			memcpy(&Stepinfo->objects[i], &paintDlg.objects[i], sizeof(object));
+		}
+
+		for (int actingRobot=0; actingRobot<paintDlg.FieldParameters.rivals; actingRobot++)	//шаг
 		{
 			Stepinfo->yourNumber = actingRobot;
 			if (paintDlg.robots[actingRobot]->alive)
 			{
 				toThread *threadData = new toThread;
 				step *Step = new step;
-				//Step->nextAction = NULL;
 				for (int i = 0; i<3; i++)
 					Step->actions[i] = NULL;
 
@@ -172,25 +187,19 @@ void CfieldDlg::Play()
 								{
 									if (sqrt(pow(Step->actions[i]->dx,2) + pow(Step->actions[i]->dy,2)) <= (double)paintDlg.FieldParameters.Vmax*(double)paintDlg.robots[actingRobot]->V/(double)paintDlg.FieldParameters.Lmax*(double)paintDlg.robots[actingRobot]->E/(double)paintDlg.FieldParameters.Emax)
 									{
-										int newx = curx+Step->actions[i]->dx;
-										int newy = cury+Step->actions[i]->dy;
-										if (newx<0)
-											newx+=paintDlg.FieldParameters.fieldWidth;
-										else if (newx>=paintDlg.FieldParameters.fieldWidth)
-											newx-=paintDlg.FieldParameters.fieldWidth;
-										if (newy<0)
-											newy+=paintDlg.FieldParameters.fieldHeight;
-										else if (newy>=paintDlg.FieldParameters.fieldHeight)
-											newy-=paintDlg.FieldParameters.fieldHeight;
-										if (paintDlg.matrix[curx][cury] == actingRobot || paintDlg.matrix[curx][cury] == SEVERAL)
-											paintDlg.matrix[curx][cury] = -1;
-										paintDlg.robots[actingRobot]->x = newx;
-										paintDlg.robots[actingRobot]->y = newy;
-										paintDlg.robots[actingRobot]->newE -= paintDlg.FieldParameters.dEv;
-										if (paintDlg.matrix[newx][newy] == -1)	//если пустая клетка
-											paintDlg.matrix[newx][newy] = actingRobot;
-										else if (paintDlg.matrix[newx][newy] >-1 || paintDlg.matrix[newx][newy] == SEVERAL)	//если кто-то стоит
-											paintDlg.matrix[newx][newy] = SEVERAL;
+										//int newx = curx+Step->actions[i]->dx;
+										//int newy = cury+Step->actions[i]->dy;
+										paintDlg.robots[actingRobot]->newx = curx+Step->actions[i]->dx;
+										paintDlg.robots[actingRobot]->newy = cury+Step->actions[i]->dy;
+										if (paintDlg.robots[actingRobot]->newx<0)
+											paintDlg.robots[actingRobot]->newx+=paintDlg.FieldParameters.fieldWidth;
+										else if (paintDlg.robots[actingRobot]->newx>=paintDlg.FieldParameters.fieldWidth)
+											paintDlg.robots[actingRobot]->newx-=paintDlg.FieldParameters.fieldWidth;
+										if (paintDlg.robots[actingRobot]->newy<0)
+											paintDlg.robots[actingRobot]->newy+=paintDlg.FieldParameters.fieldHeight;
+										else if (paintDlg.robots[actingRobot]->newy>=paintDlg.FieldParameters.fieldHeight)
+											paintDlg.robots[actingRobot]->newy-=paintDlg.FieldParameters.fieldHeight;
+
 									}
 									break;
 								}
@@ -321,6 +330,16 @@ void CfieldDlg::Play()
 		}
 		for (int i=0; i<paintDlg.FieldParameters.rivals; i++)	//обновляем параметры, выносим трупы
 		{
+			if (paintDlg.matrix[paintDlg.robots[i]->x][paintDlg.robots[i]->y] == i || paintDlg.matrix[paintDlg.robots[i]->x][paintDlg.robots[i]->y] == SEVERAL)	//перемещение
+				paintDlg.matrix[paintDlg.robots[i]->x][paintDlg.robots[i]->y] = -1;
+			paintDlg.robots[i]->x = paintDlg.robots[i]->newx;
+			paintDlg.robots[i]->y = paintDlg.robots[i]->newy;
+			paintDlg.robots[i]->newE -= paintDlg.FieldParameters.dEv;
+			if (paintDlg.matrix[paintDlg.robots[i]->newx][paintDlg.robots[i]->newy] == -1)	//если пустая клетка
+				paintDlg.matrix[paintDlg.robots[i]->newx][paintDlg.robots[i]->newy] = i;
+			else if (paintDlg.matrix[paintDlg.robots[i]->newx][paintDlg.robots[i]->newy] >-1 || paintDlg.matrix[paintDlg.robots[i]->newx][paintDlg.robots[i]->newy] == SEVERAL)	//если кто-то стоит
+				paintDlg.matrix[paintDlg.robots[i]->newx][paintDlg.robots[i]->newy] = SEVERAL;
+
 			if (paintDlg.robots[i]->E == paintDlg.robots[i]->newE)
 				paintDlg.robots[i]->newE -= paintDlg.FieldParameters.dEs;
 			if (paintDlg.robots[i]->newA < 0)
@@ -359,6 +378,10 @@ void CfieldDlg::Play()
 		UpdateWindow();
 
 		paintDlg.DrawRobots();
+
+		for (int i = 0; i < paintDlg.FieldParameters.rivals; i++)
+			delete Stepinfo->robots[i];
+		delete Stepinfo->field;
 		delete Stepinfo->robots;
 		delete Stepinfo->objects;
 		delete Stepinfo->history;
