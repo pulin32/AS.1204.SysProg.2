@@ -103,7 +103,7 @@ UINT thread(LPVOID pParam)
 
 void CfieldDlg::Play()
 {
-	while (stepNumber < paintDlg.FieldParameters.N && aliveRobots >= 1)
+	while (stepNumber < paintDlg.FieldParameters.N && aliveRobots > 1)
 	{
 		stepNumber++;
 		stepinfo *Stepinfo = new stepinfo;
@@ -168,6 +168,8 @@ void CfieldDlg::Play()
 				history[actingRobot] = Step;
 				int curx = paintDlg.robots[actingRobot]->x;
 				int cury = paintDlg.robots[actingRobot]->y;
+				paintDlg.robots[actingRobot]->newx = curx;
+				paintDlg.robots[actingRobot]->newy = cury;
 				if (Step)
 				{
 					if (paintDlg.matrix[curx][cury] != actingRobot)
@@ -199,7 +201,7 @@ void CfieldDlg::Play()
 											paintDlg.robots[actingRobot]->newy+=paintDlg.FieldParameters.fieldHeight;
 										else if (paintDlg.robots[actingRobot]->newy>=paintDlg.FieldParameters.fieldHeight)
 											paintDlg.robots[actingRobot]->newy-=paintDlg.FieldParameters.fieldHeight;
-
+										paintDlg.robots[i]->newE -= paintDlg.FieldParameters.dEv;
 									}
 									break;
 								}
@@ -330,38 +332,42 @@ void CfieldDlg::Play()
 		}
 		for (int i=0; i<paintDlg.FieldParameters.rivals; i++)	//обновляем параметры, выносим трупы
 		{
-			if (paintDlg.matrix[paintDlg.robots[i]->x][paintDlg.robots[i]->y] == i || paintDlg.matrix[paintDlg.robots[i]->x][paintDlg.robots[i]->y] == SEVERAL)	//перемещение
-				paintDlg.matrix[paintDlg.robots[i]->x][paintDlg.robots[i]->y] = -1;
-			paintDlg.robots[i]->x = paintDlg.robots[i]->newx;
-			paintDlg.robots[i]->y = paintDlg.robots[i]->newy;
-			paintDlg.robots[i]->newE -= paintDlg.FieldParameters.dEv;
-			if (paintDlg.matrix[paintDlg.robots[i]->newx][paintDlg.robots[i]->newy] == -1)	//если пустая клетка
-				paintDlg.matrix[paintDlg.robots[i]->newx][paintDlg.robots[i]->newy] = i;
-			else if (paintDlg.matrix[paintDlg.robots[i]->newx][paintDlg.robots[i]->newy] >-1 || paintDlg.matrix[paintDlg.robots[i]->newx][paintDlg.robots[i]->newy] == SEVERAL)	//если кто-то стоит
-				paintDlg.matrix[paintDlg.robots[i]->newx][paintDlg.robots[i]->newy] = SEVERAL;
+			if (paintDlg.robots[i]->alive)
+			{
+				if (paintDlg.matrix[paintDlg.robots[i]->x][paintDlg.robots[i]->y] == i || paintDlg.matrix[paintDlg.robots[i]->x][paintDlg.robots[i]->y] == SEVERAL)	//перемещение
+					paintDlg.matrix[paintDlg.robots[i]->x][paintDlg.robots[i]->y] = -1;
+				paintDlg.robots[i]->x = paintDlg.robots[i]->newx;
+				paintDlg.robots[i]->y = paintDlg.robots[i]->newy;
+				if (paintDlg.matrix[paintDlg.robots[i]->newx][paintDlg.robots[i]->newy] == -1)	//если пустая клетка
+					paintDlg.matrix[paintDlg.robots[i]->newx][paintDlg.robots[i]->newy] = i;
+				else if (paintDlg.matrix[paintDlg.robots[i]->newx][paintDlg.robots[i]->newy] >-1 || paintDlg.matrix[paintDlg.robots[i]->newx][paintDlg.robots[i]->newy] == SEVERAL)	//если кто-то стоит
+					paintDlg.matrix[paintDlg.robots[i]->newx][paintDlg.robots[i]->newy] = SEVERAL;	//
 
-			if (paintDlg.robots[i]->E == paintDlg.robots[i]->newE)
-				paintDlg.robots[i]->newE -= paintDlg.FieldParameters.dEs;
-			if (paintDlg.robots[i]->newA < 0)
-			{
-				paintDlg.robots[i]->newL -= paintDlg.robots[i]->newA;
-				paintDlg.robots[i]->newA = 0;
+				if (paintDlg.robots[i]->E == paintDlg.robots[i]->newE)
+					paintDlg.robots[i]->newE -= paintDlg.FieldParameters.dEs;
+				if (paintDlg.robots[i]->newA < 0)
+				{
+					paintDlg.robots[i]->newL -= paintDlg.robots[i]->newA;
+					paintDlg.robots[i]->newA = 0;
+				}
+				if (paintDlg.robots[i]->newP < 0)
+				{
+					paintDlg.robots[i]->newL -= paintDlg.robots[i]->newP;
+					paintDlg.robots[i]->newP = 0;
+				}
+				paintDlg.robots[i]->A = paintDlg.robots[i]->newA;
+				paintDlg.robots[i]->P = paintDlg.robots[i]->newP;
+				paintDlg.robots[i]->L = paintDlg.robots[i]->newL;
+				paintDlg.robots[i]->E = paintDlg.robots[i]->newE;
+				if (paintDlg.robots[i]->killed || paintDlg.robots[i]->E<=0)
+				{
+					paintDlg.robots[i]->alive = false;
+					paintDlg.matrix[paintDlg.robots[i]->x][paintDlg.robots[i]->y] = OBJ_DEAD;
+					aliveRobots--;
+				}
 			}
-			if (paintDlg.robots[i]->newP < 0)
-			{
-				paintDlg.robots[i]->newL -= paintDlg.robots[i]->newP;
-				paintDlg.robots[i]->newP = 0;
-			}
-			paintDlg.robots[i]->A = paintDlg.robots[i]->newA;
-			paintDlg.robots[i]->P = paintDlg.robots[i]->newP;
-			paintDlg.robots[i]->L = paintDlg.robots[i]->newL;
-			paintDlg.robots[i]->E = paintDlg.robots[i]->newE;
-			if (paintDlg.robots[i]->killed || paintDlg.robots[i]->E<=0)
-			{
-				paintDlg.robots[i]->alive = false;
-				paintDlg.matrix[paintDlg.robots[i]->x][paintDlg.robots[i]->y] = OBJ_DEAD;
-				aliveRobots--;
-			}
+			else
+				paintDlg.robots[i]->L = paintDlg.robots[i]->newL;	//обновляем кол-во еды у трупа
 		}
 
 		if (infoLock != -1)

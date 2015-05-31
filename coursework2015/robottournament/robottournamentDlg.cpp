@@ -318,6 +318,7 @@ void CrobottournamentDlg::LoadRobots()
 				Field.paintDlg.robots[i]->newP = Field.paintDlg.robots[i]->P;
 				Field.paintDlg.robots[i]->newL = Field.paintDlg.robots[i]->L;
 				Field.paintDlg.robots[i]->newE = Field.paintDlg.robots[i]->E;
+
 				Field.paintDlg.robots[i]->DoStep = (robobrain)GetProcAddress(hLib, "DoStep");
 				Field.paintDlg.robots[i++]->color = RGB(rand() % 256, rand() % 256, rand() % 256);
 				name="";
