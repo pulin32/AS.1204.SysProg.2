@@ -139,8 +139,8 @@ void CPaintDlg::DrawRobots()
 	OnPaint();
 	if (cameraLock > -1)
 	{
-		upperleftCellCoords[0] = robots[cameraLock]->x-9;
-		upperleftCellCoords[1] = robots[cameraLock]->y-9;
+		upperleftCellCoords[0] = robots[cameraLock]->x-fieldSide/2;
+		upperleftCellCoords[1] = robots[cameraLock]->y-fieldSide/2;
 
 		if (upperleftCellCoords[0]<0)
 			upperleftCellCoords[0]+=FieldParameters.fieldWidth;

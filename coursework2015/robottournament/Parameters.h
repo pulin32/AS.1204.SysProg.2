@@ -87,6 +87,7 @@ struct robot
 	int newy;
 	int newA;
 	int newP;
+	int newV;
 	int newL;
 	int newE;
 	int kills;
@@ -110,25 +111,40 @@ struct toThread
 #define OBJ_DEAD -4
 #define SEVERAL -5
 
-/*struct coords
-{
-	int xlocal;
-	int ylocal;
-	int xreal;
-	int yreal;
-	int *upperleftCellCoords;
-	int **matrix;
-	int n;
-	
-};*/
 
-
-inline void DoAction(step *Step, int type, int dx = 0, int dy = 0, int A = 0, int P = 0, int V = 0)
+inline void DoAction(step *Step, int type, int dx, int dy)
 {
+	if (type != ACT_MOVE && type != ACT_ATTACK)
+		return;
 	if (Step->actions[type])
 		delete Step->actions[type];
 	if (type == ACT_MOVE && !dx && !dy)
 		return;
+	Step->actions[type] = new action;
+	Step->actions[type]->dx = dx;
+	Step->actions[type]->dy = dy;
+}
+
+
+inline void DoAction(step *Step, int type, int A, int P, int V)
+{
+	if (type != ACT_TECH)
+		return;
+	if (Step->actions[type])
+		delete Step->actions[type];
+	Step->actions[type] = new action;
+	Step->actions[type]->A = A;
+	Step->actions[type]->P = P;
+	Step->actions[type]->V = V;
+}
+
+
+inline void DoAction(step *Step, int type, int dx, int dy, int A, int P, int V)
+{
+	if (type == ACT_MOVE && !dx && !dy)
+		return;
+	if (Step->actions[type])
+		delete Step->actions[type];
 	Step->actions[type] = new action;
 	Step->actions[type]->dx = dx;
 	Step->actions[type]->dy = dy;

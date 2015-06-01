@@ -9,22 +9,69 @@ using namespace std;
 extern "C" 
 void DoStep(stepinfo *Info, step *Step)
 {
-	//AfxMessageBox("DLL");
-	srand(time(0));
-	/*Step->action = ACT_MOVE;
-	Step->dx = rand() % 3 -1;
-	Step->dy = rand() % 3 -1;*/
-	/*Step->numberOfActions = 1;
-	Step->actions = new action[Step->numberOfActions];
-	Step->actions[0].act = ACT_MOVE;
-	Step->actions[0].dx = rand() % 3 - 1;
-	Step->actions[0].dy = rand() % 3 - 1;*/
-	//SetEvent(CommitStep);
-	/*int myNumber = Info->yourNumber;
-	int myX = Info->robots[myNumber]->x;
-	int myY = Info->robots[myNumber]->y;*/
+	int me = Info->yourNumber;
+	int myx = Info->robots[me]->x;
+	int myy = Info->robots[me]->y;
+	double minDistanceToCharger = Info->field->fieldWidth;
+	int index = 0;
+	if (Info->field->Ne > 0)
+	{
+		for (int i = 0; i<Info->field->Ne + Info->field->Nl; i++)
+		{
+			if (Info->objects[i]->type == OBJ_CHARGER)
+			{
+				double curDist = sqrt(pow(Info->objects[i]->x-myx, 2) + pow(Info->objects[i]->y-myy, 2));
+				if (curDist < minDistanceToCharger)
+				{
+					minDistanceToCharger = curDist;
+					index = i;
+				}
+			}
+		}
+	}
+	else if (Info->field->Nl > 0)
+	{
+		for (int i = 0; i<Info->field->Ne + Info->field->Nl; i++)
+		{
+			if (Info->objects[i]->type == OBJ_TECH)
+			{
+				double curDist = sqrt(pow(Info->objects[i]->x-myx, 2) + pow(Info->objects[i]->y-myy, 2));
+				if (curDist < minDistanceToCharger)
+				{
+					minDistanceToCharger = curDist;
+					index = i;
+				}
+			}
+		}
+	}
+	else
+	{
+		DoAction(Step,ACT_TECH,0,Info->robots[me]->L,0);
+		return;
+	}
 
-	DoAction(Step, ACT_MOVE, rand() % 3 -1, rand() % 3 -1);
+	if (minDistanceToCharger > 0)
+	{
+		double maxStep = Info->robots[me]->V*Info->field->Vmax/Info->field->Lmax*Info->robots[me]->E/Info->field->Emax;	
+		double reqSteps = minDistanceToCharger/maxStep;	
+		int destx = Info->objects[index]->x;
+		int desty = Info->objects[index]->y;
+		if (reqSteps > 1)
+		{
+			DoAction(Step,ACT_TECH,0,Info->robots[me]->L-Info->field->Vmax,Info->field->Vmax);	
+			int dx = (destx - myx)/reqSteps;
+			int dy = (desty - myy)/reqSteps;
+			DoAction(Step,ACT_MOVE,dx,dy);
+		}
+		else
+		{
+			DoAction(Step,ACT_TECH,0,Info->robots[me]->L,0);
+			DoAction(Step,ACT_MOVE,destx-myx,desty-myy);
+		}
+	}
+	else
+		DoAction(Step,ACT_TECH,0,Info->robots[me]->L,0);
+
 	return;
 }
 

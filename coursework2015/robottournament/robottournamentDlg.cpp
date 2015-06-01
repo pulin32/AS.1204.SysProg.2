@@ -51,8 +51,8 @@ END_MESSAGE_MAP()
 
 CrobottournamentDlg::CrobottournamentDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(CrobottournamentDlg::IDD, pParent)
-	, fieldHeight(20)
-	, fieldWidth(20)
+	, fieldHeight(fieldSide)
+	, fieldWidth(fieldSide)
 	, PathToDllList(_T("list.txt"))
 	, robotsNumber(0)
 	, N(1000)
@@ -316,6 +316,7 @@ void CrobottournamentDlg::LoadRobots()
 				Field.paintDlg.robots[i]->L = Data.Lmax;
 				Field.paintDlg.robots[i]->newA = Field.paintDlg.robots[i]->A;
 				Field.paintDlg.robots[i]->newP = Field.paintDlg.robots[i]->P;
+				Field.paintDlg.robots[i]->newV = Field.paintDlg.robots[i]->V;
 				Field.paintDlg.robots[i]->newL = Field.paintDlg.robots[i]->L;
 				Field.paintDlg.robots[i]->newE = Field.paintDlg.robots[i]->E;
 

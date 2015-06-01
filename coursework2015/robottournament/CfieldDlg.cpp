@@ -149,10 +149,10 @@ void CfieldDlg::Play()
 				threadData->Info = Stepinfo;
 				threadData->Step = Step;
 				HANDLE hThread = AfxBeginThread(thread,threadData)->m_hThread;
-				if (WaitForSingleObject(hThread, paintDlg.FieldParameters.T) == WAIT_TIMEOUT)
+				if (WaitForSingleObject(hThread, /*paintDlg.FieldParameters.T*/ INFINITE) == WAIT_TIMEOUT)
 				{
 					TerminateThread(hThread, NULL);
-					break;
+					//break;
 				}
 
 				if (history[actingRobot])	//очистка истории
@@ -170,15 +170,15 @@ void CfieldDlg::Play()
 				int cury = paintDlg.robots[actingRobot]->y;
 				paintDlg.robots[actingRobot]->newx = curx;
 				paintDlg.robots[actingRobot]->newy = cury;
+				/*if (paintDlg.matrix[curx][cury] != actingRobot)
+				{
+					if (paintDlg.matrix[curx][cury] >= 0)
+						paintDlg.matrix[curx][cury] = SEVERAL;
+					else if (paintDlg.matrix[curx][cury] == -1)
+						paintDlg.matrix[curx][cury] = actingRobot;
+				}*/
 				if (Step)
 				{
-					if (paintDlg.matrix[curx][cury] != actingRobot)
-					{
-						if (paintDlg.matrix[curx][cury] >= 0)
-							paintDlg.matrix[curx][cury] = SEVERAL;
-						else if (paintDlg.matrix[curx][cury] == -1)
-							paintDlg.matrix[curx][cury] = actingRobot;
-					}
 					for (int i = 0; i<3; i++)
 					{
 						if (Step->actions[i])
@@ -201,7 +201,7 @@ void CfieldDlg::Play()
 											paintDlg.robots[actingRobot]->newy+=paintDlg.FieldParameters.fieldHeight;
 										else if (paintDlg.robots[actingRobot]->newy>=paintDlg.FieldParameters.fieldHeight)
 											paintDlg.robots[actingRobot]->newy-=paintDlg.FieldParameters.fieldHeight;
-										paintDlg.robots[i]->newE -= paintDlg.FieldParameters.dEv;
+										paintDlg.robots[actingRobot]->newE -= paintDlg.FieldParameters.dEv;
 									}
 									break;
 								}
@@ -291,6 +291,8 @@ void CfieldDlg::Play()
 						}
 					}
 				}
+				if (paintDlg.robots[actingRobot]->E == paintDlg.robots[actingRobot]->newE)	//если  простой
+					paintDlg.robots[actingRobot]->newE -= paintDlg.FieldParameters.dEs;
 				int curobj = paintDlg.matrix[curx][cury];
 				if (curobj == OBJ_CHARGER)
 				{
@@ -343,8 +345,6 @@ void CfieldDlg::Play()
 				else if (paintDlg.matrix[paintDlg.robots[i]->newx][paintDlg.robots[i]->newy] >-1 || paintDlg.matrix[paintDlg.robots[i]->newx][paintDlg.robots[i]->newy] == SEVERAL)	//если кто-то стоит
 					paintDlg.matrix[paintDlg.robots[i]->newx][paintDlg.robots[i]->newy] = SEVERAL;	//
 
-				if (paintDlg.robots[i]->E == paintDlg.robots[i]->newE)
-					paintDlg.robots[i]->newE -= paintDlg.FieldParameters.dEs;
 				if (paintDlg.robots[i]->newA < 0)
 				{
 					paintDlg.robots[i]->newL -= paintDlg.robots[i]->newA;
@@ -357,6 +357,7 @@ void CfieldDlg::Play()
 				}
 				paintDlg.robots[i]->A = paintDlg.robots[i]->newA;
 				paintDlg.robots[i]->P = paintDlg.robots[i]->newP;
+				paintDlg.robots[i]->V = paintDlg.robots[i]->newV;
 				paintDlg.robots[i]->L = paintDlg.robots[i]->newL;
 				paintDlg.robots[i]->E = paintDlg.robots[i]->newE;
 				if (paintDlg.robots[i]->killed || paintDlg.robots[i]->E<=0)
