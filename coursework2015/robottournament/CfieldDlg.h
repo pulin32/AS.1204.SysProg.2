@@ -50,5 +50,6 @@ public:
 	int stepNumber;
 	int infoLock;
 	afx_msg void OnLbnSelchangeList1();
+	int rkills;
 };
 
