@@ -21,7 +21,9 @@ struct fieldData
 	dEp,  //5
 	dE,   //100
 	Ne,   //10
-	Nl;   //10
+	Nl,   //10
+	K;
+	double rndmin, rndmax;
 };
 
 struct action
@@ -93,6 +95,10 @@ struct robot
 	int kills;
 	bool alive;
 	bool killed;
+	int points;
+	int stepsAlive;
+	bool *attackedBy;
+	int player;
 };
 
 struct toThread

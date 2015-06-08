@@ -137,6 +137,12 @@ void CfieldDlg::Play()
 			memcpy(&Stepinfo->objects[i], &paintDlg.objects[i], sizeof(object));
 		}
 
+		for (int i = 0; i < paintDlg.FieldParameters.rivals; i++)	//обнуление атакующих
+		{
+			for (int j = 0; j < paintDlg.FieldParameters.rivals; j++)
+				paintDlg.robots[i]->attackedBy[j] = false;
+		}
+
 		for (int actingRobot=0; actingRobot<paintDlg.FieldParameters.rivals; actingRobot++)	//шаг
 		{
 			Stepinfo->yourNumber = actingRobot;
@@ -200,8 +206,8 @@ void CfieldDlg::Play()
 								{
 									if ( (sqrt(pow(Step->actions[i]->dx,2) + pow(Step->actions[i]->dy,2)) <= paintDlg.FieldParameters.Rmax*paintDlg.robots[actingRobot]->V/paintDlg.FieldParameters.Lmax*paintDlg.robots[actingRobot]->E/paintDlg.FieldParameters.Emax))
 									{
-										int destx = paintDlg.robots[actingRobot]->x + Step->actions[i]->dx;
-										int desty = paintDlg.robots[actingRobot]->y + Step->actions[i]->dy;
+										int destx = curx + Step->actions[i]->dx;
+										int desty = cury + Step->actions[i]->dy;
 										int victim = paintDlg.matrix[destx][desty];
 										if (victim != -1)
 										{
@@ -224,10 +230,12 @@ void CfieldDlg::Play()
 													paintDlg.robots[actingRobot]->newE -= paintDlg.FieldParameters.dEa;
 													paintDlg.robots[victim]->newE -= paintDlg.FieldParameters.dEp;
 													srand(time(0));
-													double rnd = rand() % 61 + 20;
+													double rnd = rand() % (int)(paintDlg.FieldParameters.rndmax*100+1) + paintDlg.FieldParameters.rndmin*100;
 													rnd /= 100;
 													double A = rnd*paintDlg.robots[actingRobot]->A*paintDlg.robots[actingRobot]->E/paintDlg.FieldParameters.Emax;
 													double P = (1-rnd)*paintDlg.robots[victim]->P*paintDlg.robots[victim]->E/paintDlg.FieldParameters.Emax;
+													paintDlg.robots[victim]->attackedBy[actingRobot] = true;	//пишем, что роботы атаковали друг друга
+													paintDlg.robots[actingRobot]->attackedBy[victim] = true;
 													if (A > P)	//удачная атака
 													{
 														if (paintDlg.robots[victim]->newP > 0)
@@ -237,7 +245,6 @@ void CfieldDlg::Play()
 														}
 														else
 															paintDlg.robots[victim]->newE -= abs(P - A)*paintDlg.FieldParameters.Emax/paintDlg.FieldParameters.Lmax;
-
 													}
 													else    //неудачная атака
 													{
@@ -250,15 +257,9 @@ void CfieldDlg::Play()
 															paintDlg.robots[actingRobot]->newE -= abs(P - A)*paintDlg.FieldParameters.Emax/paintDlg.FieldParameters.Lmax;
 													}
 													if (paintDlg.robots[victim]->newE <= 0)	//проверка убийства
-													{
-														paintDlg.robots[victim] ->killed = true;
-														paintDlg.robots[actingRobot]->kills++;
-													}
+														paintDlg.robots[victim]->killed = true;
 													if (paintDlg.robots[actingRobot]->newE <= 0)	//проверка убийства
-													{
-														paintDlg.robots[actingRobot] ->killed = true;
-														paintDlg.robots[victim]->kills++;
-													}
+														paintDlg.robots[actingRobot]->killed = true;
 												}
 											}
 										}
@@ -268,12 +269,23 @@ void CfieldDlg::Play()
 							case ACT_TECH:
 								{
 									int Lcur = paintDlg.robots[actingRobot]->L;
+									int Lnew = paintDlg.robots[actingRobot]->newL;
 									int Ldes = Step->actions[i]->A + Step->actions[i]->P + Step->actions[i]->V;
 									if (Ldes <= Lcur)
 									{
-										paintDlg.robots[actingRobot]->newA = Step->actions[i]->A;
-										paintDlg.robots[actingRobot]->newP = Step->actions[i]->P;
-										paintDlg.robots[actingRobot]->newV = Step->actions[i]->V;
+										if (Ldes <= Lnew)
+										{
+											paintDlg.robots[actingRobot]->newA = Step->actions[i]->A;
+											paintDlg.robots[actingRobot]->newP = Step->actions[i]->P;
+											paintDlg.robots[actingRobot]->newV = Step->actions[i]->V;
+										}
+										else
+										{
+											double k = (double)Lnew/(double)Lcur;
+											paintDlg.robots[actingRobot]->newA = (double)Step->actions[i]->A*k;
+											paintDlg.robots[actingRobot]->newP = (double)Step->actions[i]->P*k;
+											paintDlg.robots[actingRobot]->newV = (double)Step->actions[i]->V*k;
+										}
 									}
 									break;
 								}
@@ -283,7 +295,9 @@ void CfieldDlg::Play()
 				}
 				if (paintDlg.robots[actingRobot]->E == paintDlg.robots[actingRobot]->newE)	//если  простой
 					paintDlg.robots[actingRobot]->newE -= paintDlg.FieldParameters.dEs;
-				int curobj = paintDlg.matrix[curx][cury];
+				int newx = paintDlg.robots[actingRobot]->newx;
+				int newy = paintDlg.robots[actingRobot]->newy;
+				int curobj = paintDlg.matrix[newx][newy];
 				if (curobj == OBJ_CHARGER)
 				{
 					paintDlg.robots[actingRobot]->newE += paintDlg.FieldParameters.dE;
@@ -300,7 +314,7 @@ void CfieldDlg::Play()
 				{
 					for (int i=0; i<paintDlg.FieldParameters.rivals; i++)	//ищем труп, на котором стоим
 					{
-						if (paintDlg.robots[i]->x == curx && paintDlg.robots[i]->y == cury && !paintDlg.robots[i]->alive)
+						if (paintDlg.robots[i]->x == newx && paintDlg.robots[i]->y == newy && !paintDlg.robots[i]->alive)
 						{
 							curobj = i;
 							break;
@@ -322,6 +336,7 @@ void CfieldDlg::Play()
 		{
 			if (paintDlg.robots[i]->alive)
 			{
+				paintDlg.robots[i]->stepsAlive++;
 				if (paintDlg.matrix[paintDlg.robots[i]->x][paintDlg.robots[i]->y] == i || paintDlg.matrix[paintDlg.robots[i]->x][paintDlg.robots[i]->y] == SEVERAL)	//перемещение
 					paintDlg.matrix[paintDlg.robots[i]->x][paintDlg.robots[i]->y] = -1;
 				paintDlg.robots[i]->x = paintDlg.robots[i]->newx;
@@ -350,6 +365,11 @@ void CfieldDlg::Play()
 				{
 					paintDlg.robots[i]->alive = false;
 					paintDlg.matrix[paintDlg.robots[i]->x][paintDlg.robots[i]->y] = OBJ_DEAD;
+					for (int j = 0; j < paintDlg.FieldParameters.rivals; j++)	//призы убийцам
+					{
+						if (paintDlg.robots[i]->attackedBy[j])
+							paintDlg.robots[j]->kills++;
+					}
 					aliveRobots--;
 				}
 			}
@@ -382,6 +402,78 @@ void CfieldDlg::Play()
 		delete Stepinfo;
 
 		Sleep(100);
+	}
+
+	for (int i = 0; i < paintDlg.FieldParameters.rivals; i++)	//после битвы
+	{
+		if (paintDlg.robots[i]->alive)
+			paintDlg.robots[i]->points = paintDlg.robots[i]->newE + paintDlg.robots[i]->kills*paintDlg.FieldParameters.K;
+		else
+			paintDlg.robots[i]->points = paintDlg.robots[i]->stepsAlive;
+	}
+	Sort();
+	string results = "Место    Имя                     Статус    Убил   Очки\n";
+	for (int i = 0; i < paintDlg.FieldParameters.rivals; i++)
+	{
+		int id = finalStandings[i];
+		int dots = 0;
+		for (int j = 0; j < paintDlg.robots[id]->name.GetLength(); j++)
+		{
+			if (paintDlg.robots[id]->name[j] == '.')
+				dots++;
+		}
+		string space2 = "   ";
+		if (dots == 1)
+			space2+="   ";
+
+		string space1 = ".           ";
+		if (i<9)
+			space1+="  ";
+
+		string status = "";
+		if (paintDlg.robots[id]->alive)
+			status = "Выжил";
+		else if (paintDlg.robots[id]->killed)
+			status = "Убит    ";
+		else
+			status = "Умер   ";
+		results += to_string(i+1) + space1 + paintDlg.robots[id]->name.GetString() + space2 + status + "   " + to_string(paintDlg.robots[id]->kills) + "           "  + to_string(paintDlg.robots[id]->points) + "\n";
+	}
+	MessageBox(results.c_str(),"Результаты раунда");
+	int opt = MessageBox("Обновить роботов во входном списке?","Очень важный вопрос",MB_YESNO | MB_ICONQUESTION);
+	if (opt == IDYES)
+	{
+		ofstream List(path);
+		for (int i = 0; i < paintDlg.FieldParameters.rivals; i++)
+		{
+			if (paintDlg.robots[i]->player)
+			{
+				int rofp = 0;
+				int dots = 0;
+				string name = paintDlg.robots[i]->name.GetString();
+				for (int j = 0; j < name.size(); j++)
+				{
+					if (name[j] == '.')
+						dots++;
+				}
+				if (dots > 1)
+				{
+					name.pop_back(); name.pop_back();
+				}
+				for (int j = i; j < paintDlg.FieldParameters.rivals; j++)
+				{
+					if (paintDlg.robots[j]->alive && paintDlg.robots[i]->player == paintDlg.robots[j]->player)
+					{
+						rofp++;
+						paintDlg.robots[j]->player = 0;
+					}
+				}
+				rofp++;
+				List<<name<<".dll "<<rofp<<endl;
+			}
+		}
+		List.close();
+		MessageBox("Готово","Обновление данных");
 	}
 }
 
@@ -434,6 +526,9 @@ void CfieldDlg::OnBnClickedButton1()
 		paintDlg.robots[i]->x = xrand;
 		paintDlg.robots[i]->y = yrand;
 		m_ListBox.AddString(paintDlg.robots[i]->name);
+		paintDlg.robots[i]->attackedBy = new bool[paintDlg.FieldParameters.rivals];
+		for (int j = 0; j < paintDlg.FieldParameters.rivals; j++)
+			paintDlg.robots[i]->attackedBy[j] = false;
 	}
 	//UpdateData(false);
 	UpdateWindow();
@@ -513,4 +608,26 @@ void CfieldDlg::OnLbnSelchangeList1()
 		rkills = paintDlg.robots[infoLock]->kills;
 	}
 	UpdateData(FALSE);
+}
+
+
+void CfieldDlg::Sort()
+{
+	int size = paintDlg.FieldParameters.rivals;
+	finalStandings = new int[size];
+	for (int i = 0; i < size; i++)
+		finalStandings[i] = i;
+	int temp;
+	for (int i=0; i<=(size-1); i++)
+	{
+		for (int j=0; j<=(size-2); j++)
+		{
+			if  (paintDlg.robots[finalStandings[j+1]]->points > paintDlg.robots[finalStandings[j]]->points) 
+			{ 
+				temp = finalStandings[j];
+				finalStandings[j] = finalStandings[j+1];
+				finalStandings[j+1] = temp;
+			}
+		}
+	}
 }

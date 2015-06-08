@@ -57,6 +57,9 @@ public:
 	int dE;
 	int Ne;
 	int Nl;
+	double rndmin;
+	double rndmax;
+	int K;
 };
 
 
