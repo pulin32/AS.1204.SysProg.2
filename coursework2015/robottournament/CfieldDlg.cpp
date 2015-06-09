@@ -128,6 +128,7 @@ void CfieldDlg::Play()
 			Stepinfo->robots[i]->E = paintDlg.robots[i]->E;
 			Stepinfo->robots[i]->alive = paintDlg.robots[i]->alive;
 			Stepinfo->robots[i]->kills = paintDlg.robots[i]->kills;
+			Stepinfo->robots[i]->playerid = paintDlg.robots[i]->player;
 
 			Stepinfo->history[i] = history[i];
 		}
@@ -409,21 +410,15 @@ void CfieldDlg::Play()
 		if (paintDlg.robots[i]->alive)
 			paintDlg.robots[i]->points = paintDlg.robots[i]->newE + paintDlg.robots[i]->kills*paintDlg.FieldParameters.K;
 		else
-			paintDlg.robots[i]->points = paintDlg.robots[i]->stepsAlive;
+			paintDlg.robots[i]->points = paintDlg.robots[i]->stepsAlive - paintDlg.FieldParameters.N;
 	}
 	Sort();
 	string results = "Место    Имя                     Статус    Убил   Очки\n";
 	for (int i = 0; i < paintDlg.FieldParameters.rivals; i++)
 	{
 		int id = finalStandings[i];
-		int dots = 0;
-		for (int j = 0; j < paintDlg.robots[id]->name.GetLength(); j++)
-		{
-			if (paintDlg.robots[id]->name[j] == '.')
-				dots++;
-		}
 		string space2 = "   ";
-		if (dots == 1)
+		if (paintDlg.robots[id]->name.GetLength() < 13)
 			space2+="   ";
 
 		string space1 = ".           ";
@@ -434,9 +429,15 @@ void CfieldDlg::Play()
 		if (paintDlg.robots[id]->alive)
 			status = "Выжил";
 		else if (paintDlg.robots[id]->killed)
+		{
 			status = "Убит    ";
+			paintDlg.robots[id]->points += paintDlg.FieldParameters.N;
+		}
 		else
+		{
 			status = "Умер   ";
+			paintDlg.robots[id]->points += paintDlg.FieldParameters.N;
+		}
 		results += to_string(i+1) + space1 + paintDlg.robots[id]->name.GetString() + space2 + status + "   " + to_string(paintDlg.robots[id]->kills) + "           "  + to_string(paintDlg.robots[id]->points) + "\n";
 	}
 	MessageBox(results.c_str(),"Результаты раунда");

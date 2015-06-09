@@ -59,6 +59,7 @@ struct robotinfo
 	int P;
 	int kills;
 	bool alive;
+	int playerid;
 };
 
 struct stepinfo
